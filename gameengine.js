@@ -19,6 +19,8 @@ class GameEngine {
         this.options = options || {
             debugging: false,
         };
+
+        this.camera = { x: 0, y: 0 };
     };
 
     init(ctx) {
@@ -84,10 +86,16 @@ class GameEngine {
         // Clear the whole canvas with transparent color (rgba(0, 0, 0, 0))
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
+        this.ctx.save();
+
+        this.ctx.translate(-this.camera.x, -this.camera.y);
+
         // Draw latest things first
-        for (let i = this.entities.length - 1; i >= 0; i--) {
+        for (let i = 0; i < this.entities.length; i++) {
             this.entities[i].draw(this.ctx, this);
         }
+
+        this.ctx.restore();
     };
 
     update() {
