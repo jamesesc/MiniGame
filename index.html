@@ -2,6 +2,84 @@
 <!DOCTYPE html>
 <html>
 <head>
+        <meta charset="utf-8">
+    <title>Otter and her Adventure</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;  
+            min-height: 100vh; 
+            background-color: #333; 
+            overflow: auto;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;  
+            padding-top: 50px;     
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            text-shadow: 3px 3px 0px #000;
+        }
+
+        canvas {
+            image-rendering: pixelated; 
+            /* Your desired TV border */
+            border: 33px solid black;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            margin: 20px 0;
+        }
+
+        .info-section {
+            margin-top: 10px;
+        }
+
+        h1 {
+            font-size: 5rem;         
+            margin-bottom: 30px;       
+            text-transform: uppercase;
+            text-shadow: 4px 4px 0px #000; 
+        }
+        
+        h2, h3, h4 {
+            margin: 5px 0;
+            font-weight: normal;
+        }
+
+        /* TCSS 491 text */
+        .info-section h2 {
+            font-size: 5rem; 
+        }
+
+        /* Name text */
+        .info-section h3 {
+            font-size: 4rem;   
+        }
+
+        /* Controls text */
+        .info-section h4 {
+            font-size: 3rem; 
+            margin: 10px 0;
+        }
+
+
+    </style>
+
+
     <meta charset="utf-8">
     <title>Game Project Title Goes Here</title>
   
@@ -23,6 +101,23 @@
     <script type="text/javascript" src="./main.js"></script>
 </head>
 <body>
-    <canvas id="gameWorld" width="5000" height="1100" style="background: white; border: 1px solid black" tabindex="0" autofocus></canvas>
+    <div class="game-container">
+        <h1>The Wacky Tacky Otter Crazy Adventure</h1>
+
+         <canvas id="gameWorld" width="5000" height="1100" style="background: white; border: 1px solid black" tabindex="0" autofocus></canvas>
+
+        <div class="info-section">
+            <h2>TCSS 491: Mini-Game</h2>
+            <h3>James Escudero</h3>
+            <h4>Controls: 
+                Movement: A / D (Shift to run) 
+            </h4>
+            <h4>Sleep: S</h4>
+            <h4>Spin: E</h4>
+        </div>
+    </div>
+
+
+
 </body>
 </html>
