@@ -31,7 +31,7 @@ class Otter {
     }
 
     createAnimations() {
-        const basePath = "./Assests/Otter/";
+        const basePath = "./Assets/Otter/";
         
         const states = [
             { name: "idle", count: 4 },

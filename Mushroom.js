@@ -8,7 +8,7 @@ class Mushroom {
         this.x = 1700; 
         this.y = 950;
 
-        this.spritesheet = ASSET_MANAGER.getAsset("./Assests/Mobs/Mushroom/Mushroom-Idle.png");
+        this.spritesheet = ASSET_MANAGER.getAsset("./Assets/Mobs/Mushroom/Mushroom-Idle.png");
 
 
         this.animation = new AnimatorFromOneImage(

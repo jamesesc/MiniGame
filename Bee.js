@@ -8,7 +8,7 @@ class Bee {
         this.x = 2000; 
         this.y = 680;
 
-        this.spritesheet = ASSET_MANAGER.getAsset("./Assests/Mobs/Bee/Bee-Fly.png");
+        this.spritesheet = ASSET_MANAGER.getAsset("./Assets/Mobs/Bee/Bee-Fly.png");
 
 
         this.animation = new AnimatorFromOneImage(

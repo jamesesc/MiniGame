@@ -8,7 +8,7 @@ class HeartItem {
         this.x = 1200; 
         this.y = 950;
 
-        this.spritesheet = ASSET_MANAGER.getAsset("./Assests/Items/Hearts.png");
+        this.spritesheet = ASSET_MANAGER.getAsset("./Assets/Items/Hearts.png");
 
 
         this.animation = new AnimatorFromOneImage(

@@ -8,7 +8,7 @@ class Frog {
         this.x = 2000; 
         this.y = 1040;
 
-        this.spritesheet = ASSET_MANAGER.getAsset("./Assests/Mobs/Frogs/Green-Frog.png");
+        this.spritesheet = ASSET_MANAGER.getAsset("./Assets/Mobs/Frogs/Green-Frog.png");
 
 
         this.animation = new AnimatorFromOneImage(

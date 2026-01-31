@@ -15,7 +15,7 @@ class Ground {
 
     draw(ctx) {
         // Getting the image 
-        const asset = ASSET_MANAGER.getAsset("./Assests/Ground/Ground-1.png");
+        const asset = ASSET_MANAGER.getAsset("./Assets/Ground/Ground-1.png");
         
         // Getting the ground tile dimesions
         const tileWidth = this.ground.w * this.scale;

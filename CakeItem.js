@@ -8,7 +8,7 @@ class CakeItem {
         this.x = 1000; 
         this.y = 950;
 
-        this.spritesheet = ASSET_MANAGER.getAsset("./Assests/Items/Strawberrycake.png");
+        this.spritesheet = ASSET_MANAGER.getAsset("./Assets/Items/Strawberrycake.png");
 
         this.animation = new AnimatorFromOneImage(
             this.spritesheet, 
