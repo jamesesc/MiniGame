@@ -103,7 +103,7 @@ class Otter {
 
         if (this.game.options.debugging) {
             ctx.strokeStyle = "Red";
-            ctx.lineWidth = 1;
+            ctx.lineWidth = 5;
             ctx.beginPath();
             ctx.strokeRect(
                 this.BB.x, 

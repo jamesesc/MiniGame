@@ -21,10 +21,16 @@ class Bee {
         );
         
         this.animation.scale = this.scale;
+
+        this.updateBB();
+
     }
 
     update() {
         this.y += Math.sin(this.game.timer.gameTime * 3) * 0.7;
+
+        this.updateBB();
+
     }   
 
     draw(ctx) {
@@ -36,5 +42,20 @@ class Bee {
                 this.y
             );
         }
+
+        if (this.game.options.debugging) {
+            ctx.strokeStyle = "Red";
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
+        }
+    }
+
+
+    
+
+    updateBB() {
+        this.lastBB = this.BB;
+        this.BB = new BoundingBox(this.x + 150, this.y + 140, 125, 90); 
     }
 }
