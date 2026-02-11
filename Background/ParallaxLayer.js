@@ -22,29 +22,26 @@ class ParallaxLayer {
     }
 
     draw(ctx) {
-        if (!this.image) return;
+            if (!this.image) return;
 
-        ctx.save();
-        
-        // Converting camera base on the realtive to the camera and not the world
-        let camX = this.game.camera ? this.game.camera.x : 0;
-        let camY = this.game.camera ? this.game.camera.y : 0;
-        ctx.translate(camX, camY);
+            ctx.save();
+            
+            let camX = this.game.camera ? this.game.camera.x : 0;
+            let camY = this.game.camera ? this.game.camera.y : 0;
+            
+            ctx.translate(camX, camY);
 
-        // Calculating the camera speed 
-        let xPosition = -camX * this.speedModifier;
+            let xPosition = -camX * this.speedModifier;
+            let startX = xPosition % this.width;
+            if (startX >= 0) startX -= this.width;
+            let yParallax = -camY * this.speedModifier;
+            
+            let drawY = this.yOffset + yParallax;
+            
+            for (let i = startX; i < ctx.canvas.width; i += this.width) {
+                ctx.drawImage(this.image, i, drawY, this.width, this.height);
+            }
 
-        // Calculting the left edgge 
-        let startX = xPosition % this.width;
-        
-        // Add on to draw slightly to the left of the screen 
-        if (startX >= 0) startX -= this.width;
-
-        // Continue filling the screen with images that fits in the view
-        for (let i = startX; i < ctx.canvas.width; i += this.width) {
-             ctx.drawImage(this.image, i, this.yOffset, this.width, this.height);
+            ctx.restore();
         }
-
-        ctx.restore();
-    }
 }

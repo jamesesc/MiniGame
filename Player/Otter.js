@@ -4,7 +4,7 @@
 class Otter {
     constructor(game) {
         this.game = game;
-        this.x = 0;
+        this.x = 500;
         this.y = 680;
         this.w = 64; 
         this.h = 64;

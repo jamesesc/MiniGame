@@ -6,9 +6,12 @@ class SceneManager {
         this.x = 0;
         this.y = 0;
 
-        // Intro State
+        // Intro State: Start true so we see the menu
         this.title = true; 
 
+        // Camera state
+        this.introCamera = false; // Start false, trigger it when title ends
+        
         // Creating our player (the otter)
         this.otter = new Otter(game);
         this.game.addEntity(this.otter);
@@ -23,24 +26,35 @@ class SceneManager {
                 this.title = false;
                 this.game.click = null; 
                 this.spacePressed = true; 
+                
+
+                this.introCamera = true;
+                this.x = this.otter.x - (1024 / 2);
+                this.y = this.otter.y - 11000; 
             }
             return;
         }
 
-        
-        // Canvas dimension setup
-        let midpointX = 1024 / 2; 
-        let midpointY = 768 / 2;  
+        if (this.introCamera) {
+            let targetX = this.otter.x - (1024 / 2);
+            let targetY = this.otter.y - (768 / 2);
 
-        // Ensuring the camera is centering base on our player
-        this.x = this.otter.x - midpointX;
-        this.y = this.otter.y - midpointY;
-        
-        // Handle manual mushroom attack trigger
+            this.x = targetX; 
+            this.y += (targetY - this.y) * 0.01;
+
+            if (Math.abs(this.y - targetY) < 5) {
+                this.introCamera = false; 
+                this.y = targetY;         
+            }
+        } 
+    
+        else {
+            this.x = this.otter.x - (1024 / 2);
+            this.y = this.otter.y - (768 / 2);
+        }
+
         if (this.game.keys[' '] && !this.spacePressed) {
             this.spacePressed = true;
-            
-            // Find the first mushroom entity and trigger attack
             const mushroom = this.game.entities.find(e => e instanceof Mushroom);
             if (mushroom) {
                 mushroom.triggerAttackManually();

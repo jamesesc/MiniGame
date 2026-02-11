@@ -89,11 +89,11 @@ ASSET_MANAGER.downloadAll(() => {
 
 
     // Background Entity 
-    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/5-SkyBackground.png", 100, -550, 4));
-    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/4-TreesBackground.png", 0.1, 0, 4));
+    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/5-SkyBackground.png", .1, -1500, 11));
+    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/4-TreesBackground.png", 0.1, 100, 4));
     gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/3-Trees.png", 0.3, 0, 5));
-    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/2-Trees.png", 0.5, 200, 2));
-    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/1-Trees.png", 0.7, -250, 4));
+    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/2-Trees.png", 0.5, 400, 2));
+    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/1-Trees.png", 0.7, -25 , 4));
 
 
 
