@@ -6,7 +6,7 @@ class Bee {
         this.height = 60;
         
         this.x = 2500; 
-        this.y = 900;
+        this.y = 700;
         
         this.startY = this.y; 
 
@@ -14,6 +14,11 @@ class Bee {
         this.health = 100; 
 
         this.damageCooldown = 0; 
+
+        this.detectionRadius = 1200;
+        this.detectionZone = new CircularDetectionZone(this.x, this.y, this.detectionRadius);
+
+        this.aggro = false; 
 
         this.spritesheet = ASSET_MANAGER.getAsset("./Assets/Mobs/Bee/Bee-Fly.png");
 
@@ -31,10 +36,32 @@ class Bee {
     }
 
     update() {
+        this.detectionZone.x = this.x + (this.width * this.scale) / 2;
+        this.detectionZone.y = this.y + (this.height * this.scale) / 2;
+    
+        const player = this.game.camera.otter;
+        
+        if (player && player.BB) {
+            if (this.detectionZone.collide(player.BB)) {
+                this.aggro = true;
+            } else {
+                this.aggro = false; 
+            }
+        }
+
+        if (this.aggro && player) {
+            const direction = player.x < this.x ? -1 : 1;
+            this.x += direction * 800 * this.game.clockTick;
+            const targetY = player.y - 50; 
+            this.y += (targetY - this.y) * 25 * this.game.clockTick;
+        } else {
+            this.y = this.startY + Math.sin(this.game.timer.gameTime * 3) * 50;
+        }
+
         if (this.damageCooldown > 0) {
             this.damageCooldown -= this.game.clockTick;
         }
-        this.y = this.startY + Math.sin(this.game.timer.gameTime * 3) * 50;
+
         
         this.updateBB();
     }   
@@ -61,6 +88,8 @@ class Bee {
             ctx.strokeStyle = "Red";
             ctx.lineWidth = 5;
             ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
+
+            this.detectionZone.draw(ctx);
         }
     }
 
@@ -94,9 +123,7 @@ class Bee {
             const player = this.game.camera.otter;
             if (player) {
                 const direction = this.x > player.x ? 1 : -1;
-                this.x += direction * 50; 
-            } else {
-                this.x += 50; 
+                this.x += direction * 50;
             }
         }
     }
