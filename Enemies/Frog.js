@@ -8,6 +8,9 @@ class Frog {
         this.x = 2000; 
         this.y = 1040;
 
+                this.maxHealth = 100;
+        this.health = 100; 
+
         this.spritesheet = ASSET_MANAGER.getAsset("./Assets/Mobs/Frogs/Green-Frog.png");
 
 
@@ -28,6 +31,8 @@ class Frog {
     update() {
         this.scale += Math.sin(this.game.timer.gameTime * 3) * 0.7;
 
+
+
         this.updateBB();
 
     }   
@@ -42,6 +47,9 @@ class Frog {
             );
         }
 
+                this.drawHealthBar(ctx);
+
+
         if (this.game.options.debugging) {
             ctx.strokeStyle = "Red";
             ctx.lineWidth = 5;
@@ -54,5 +62,27 @@ class Frog {
     updateBB() {
         this.lastBB = this.BB;
         this.BB = new BoundingBox(this.x + 40, this.y + 50, 85, 70); 
+    }
+
+    drawHealthBar(ctx) {
+        const ratio = this.health / this.maxHealth;
+        const width = this.BB.width; 
+        const height = 25;
+        
+        const xPos = this.BB.x;
+        const yPos = this.BB.y - 45; 
+
+        ctx.fillStyle = "black";
+        ctx.fillRect(xPos - 3, yPos - 3, width + 3, height + 3); 
+
+        if (ratio > 0.5) {
+            ctx.fillStyle = "green";
+        } else if (ratio > 0.25) {
+            ctx.fillStyle = "orange";
+        } else {
+            ctx.fillStyle = "red";
+        }
+        
+        ctx.fillRect(xPos, yPos, Math.max(0, width * ratio), height);
     }
 }

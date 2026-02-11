@@ -8,6 +8,9 @@ class Mushroom {
         this.x = 1700; 
         this.y = 950;
 
+        this.maxHealth = 100;
+        this.health = 100; 
+
         this.spritesheet = ASSET_MANAGER.getAsset("./Assets/Mobs/Mushroom/Mushroom-Idle.png");
         this.spritesheetDiveAttack = ASSET_MANAGER.getAsset("./Assets/Mobs/Mushroom/Mushroom-Attack.png");
 
@@ -112,6 +115,8 @@ class Mushroom {
             );
         }
 
+        this.drawHealthBar(ctx);
+
         if (this.game.options.debugging) {
             ctx.strokeStyle = "Red";
             ctx.lineWidth = 5;
@@ -132,5 +137,28 @@ class Mushroom {
             this.attackCooldown = 3;
             console.log("Manual attack triggered!");
         }
+    }
+
+
+    drawHealthBar(ctx) {
+        const ratio = this.health / this.maxHealth;
+        const width = this.BB.width; 
+        const height = 25;
+        
+        const xPos = this.BB.x + 10;
+        const yPos = this.BB.y - 125; 
+
+        ctx.fillStyle = "black";
+        ctx.fillRect(xPos - 3, yPos - 3, width + 3, height + 3); 
+
+        if (ratio > 0.5) {
+            ctx.fillStyle = "green";
+        } else if (ratio > 0.25) {
+            ctx.fillStyle = "orange";
+        } else {
+            ctx.fillStyle = "red";
+        }
+        
+        ctx.fillRect(xPos, yPos, Math.max(0, width * ratio), height);
     }
 }
