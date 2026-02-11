@@ -14,6 +14,8 @@ class Otter {
 
         this.animations = {}; 
         this.createAnimations();
+
+        this.updateBB();
     }
 
     loadSequence(path, prefix, count) {
@@ -50,31 +52,41 @@ class Otter {
     }
 
    update() {
-    this.action = "idle";
-    const WALK_SPEED = 150;
-    const RUN_SPEED = 600;
-    
-    if (this.game.keys["a"]) {
-        this.faceDirection = "Left";
-        let isRunning = this.game.keys["Shift"];
-        this.action = "run"; 
-        this.x -= (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
-    } 
-    else if (this.game.keys["d"]) {
-        this.faceDirection = "Right";
-        let isRunning = this.game.keys["Shift"];
-        this.action = "run"; 
-        this.x += (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
-    } else if (this.game.keys["s"]) {
-        this.faceDirection = "Right";
-        this.action = "sleep";
-    } else if (this.game.keys["e"]) {
-        this.faceDirection = "Right";
-        this.action = "spin"
+        this.action = "idle";
+        const WALK_SPEED = 150;
+        const RUN_SPEED = 600;
+        
+        if (this.game.keys["a"]) {
+            this.faceDirection = "Left";
+            let isRunning = this.game.keys["Shift"];
+            this.action = "run"; 
+            this.x -= (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
+        } 
+        else if (this.game.keys["d"]) {
+            this.faceDirection = "Right";
+            let isRunning = this.game.keys["Shift"];
+            this.action = "run"; 
+            this.x += (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
+        } else if (this.game.keys["s"]) {
+            this.faceDirection = "Right";
+            this.action = "sleep";
+        } else if (this.game.keys["e"]) {
+            this.faceDirection = "Right";
+            this.action = "spin"
+        }
+
+
+        this.updateBB();
+
+        this.game.entities.forEach(entity => {
+            if (entity.BB && this.BB.collide(entity.BB)) {
+                if (entity !== this) { 
+                    // Collison Logic here
+                }
+            }
+        });
+
     }
-
-}
-
     draw(ctx) {
         let currentAnim = this.animations[this.action] || this.animations["idle"];
         
@@ -87,5 +99,30 @@ class Otter {
             currentAnim.drawFrame(this.game.clockTick, ctx, 0, 0);
             ctx.restore();
         }
+
+
+        if (this.game.options.debugging) {
+            ctx.strokeStyle = "Red";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.strokeRect(
+                this.BB.x, 
+                this.BB.y, 
+                this.BB.width, 
+                this.BB.height
+            );
+        }
+    }
+
+updateBB() {
+    this.lastBB = this.BB;
+    
+    if (this.faceDirection === "Right") {
+        this.BB = new BoundingBox(this.x + 305, this.y + 235, 100, 250);
+    } else {
+        // TODO: FIX THIS 
+        this.BB = new BoundingBox(this.x + 305, this.y + 235, 100, 250); 
     }
 }
+}
+

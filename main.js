@@ -1,4 +1,4 @@
-const gameEngine = new GameEngine();
+const gameEngine = new GameEngine({ debugging: true });
 const ASSET_MANAGER = new AssetManager();
 
 // Ground Tiles
@@ -118,6 +118,7 @@ ASSET_MANAGER.downloadAll(() => {
 
     // Make sure that images is high quality 
 	ctx.imageSmoothingEnabled = false;
+
 
 
     gameEngine.start();
