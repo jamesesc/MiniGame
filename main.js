@@ -40,6 +40,8 @@ ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/Green-Frog.png");
 
 // Mushroom
 ASSET_MANAGER.queueDownload("./Assets/Mobs/Mushroom/Mushroom-Idle.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Mushroom/Mushroom-Attack.png");
+
 
 // Otter Animation
 
@@ -94,9 +96,6 @@ ASSET_MANAGER.downloadAll(() => {
     gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/1-Trees.png", 0.7, -250, 4));
 
 
-    // Player 
-    gameEngine.addEntity(new SceneManager(gameEngine));
-
 
     // Items
     gameEngine.addEntity(new HeartItem(gameEngine));
@@ -129,7 +128,9 @@ ASSET_MANAGER.downloadAll(() => {
     // Ground Type 2
     //gameEngine.addEntity(new Background(gameEngine));
 
-    // Make sure that images is high quality 
+
+    gameEngine.addEntity(new SceneManager(gameEngine));
+
 	ctx.imageSmoothingEnabled = false;
 
 
