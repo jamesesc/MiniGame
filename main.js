@@ -19,6 +19,10 @@ ASSET_MANAGER.queueDownload("./Assets/Items/Hearts.png");
 
 ASSET_MANAGER.queueDownload("./Assets/Items/Strawberrycake.png");
 
+// Player Health
+ASSET_MANAGER.queueDownload("./Assets/Items/HealthBar.png");
+
+
 // Mobs
 
 // Bee
@@ -93,6 +97,9 @@ ASSET_MANAGER.downloadAll(() => {
 
     gameEngine.addEntity(new CakeItem(gameEngine));
 
+    const playerHealth = new Health(100);  
+    gameEngine.addEntity(new HealthBar(gameEngine, playerHealth));
+    
     // Mobs  
     
     // Bee

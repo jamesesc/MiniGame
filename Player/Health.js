@@ -1,7 +1,7 @@
 class Health {
-    constructor(maxHealth = 100) {
-        this.current = maxHealth;
-        this.max = maxHealth;
+    constructor(max = 100) {
+        this.current = max;
+        this.max = max;
     }
     
     takeDamage(amount) {
