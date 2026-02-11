@@ -12,6 +12,8 @@ class Otter {
         this.faceDirection = "Right";
         this.action = "idle"; 
 
+        this.maxHealth = 100;
+        this.health = 100; 
         this.animations = {}; 
         this.createAnimations();
 
