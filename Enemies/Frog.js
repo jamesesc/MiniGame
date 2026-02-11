@@ -8,43 +8,36 @@ class Frog {
         this.x = 2000; 
         this.y = 1040;
 
-                this.maxHealth = 100;
+        this.maxHealth = 100;
         this.health = 100; 
+        
+        this.damageCooldown = 0; 
 
         this.spritesheet = ASSET_MANAGER.getAsset("./Assets/Mobs/Frogs/Green-Frog.png");
 
-
         this.animation = new AnimatorFromOneImage(
-            this.spritesheet, 
-            35, 5, 
-            this.width, this.height, 
-            4,     
-            .3,    
-            1 
+            this.spritesheet, 35, 5, this.width, this.height, 4, .3, 1 
         );
-        
         this.animation.scale = this.scale;
-
         this.updateBB();
     }
 
     update() {
-        this.scale += Math.sin(this.game.timer.gameTime * 3) * 0.7;
-
-
-
+        if (this.damageCooldown > 0) {
+            this.damageCooldown -= this.game.clockTick;
+        }
         this.updateBB();
-
     }   
 
     draw(ctx) {
         if (this.spritesheet) {
-            this.animation.drawFrame(
-                this.game.clockTick, 
-                ctx, 
-                this.x, 
-                this.y
-            );
+            if (this.damageCooldown > 0) {
+                ctx.globalAlpha = 0.5; 
+            }
+            
+            this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+            
+            ctx.globalAlpha = 1.0; 
         }
 
                 this.drawHealthBar(ctx);
@@ -84,5 +77,13 @@ class Frog {
         }
         
         ctx.fillRect(xPos, yPos, Math.max(0, width * ratio), height);
+    }
+
+    takeDamage(amount) {
+        if (this.damageCooldown <= 0) {
+            this.health -= amount;
+            this.damageCooldown = 0.5; 
+            this.x += 50; 
+        }
     }
 }

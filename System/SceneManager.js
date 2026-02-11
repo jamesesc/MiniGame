@@ -7,7 +7,7 @@ class SceneManager {
         this.y = 0;
 
         // Intro State: Start true so we see the menu
-        this.title = false; 
+        this.title = true; 
 
         // Camera state
         this.introCamera = false; // Start false, trigger it when title ends

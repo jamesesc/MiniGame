@@ -15,9 +15,28 @@ class CollisionSystem {
                 otter.BB.collide(entity.BB)) {
                 entities.splice(i, 1); 
             }
+        
+    
+
+
+
+if (entity instanceof Frog || entity instanceof Mushroom || entity instanceof Bee) { 
+                if (otter.BB && entity.BB && otter.BB.collide(entity.BB)) {
+                
+                    if (otter.action === "spin") {
+                        if (entity.takeDamage) {
+                            entity.takeDamage(25); // Deal 25 damage
+                        }
+
+                        if (entity.health <= 0) {
+                            entities.splice(i, 1); // Remove from game
+                            console.log("Enemy Defeated!");
+                        }
+                    } 
+                }
+            }
         }
     }
-
 
     static checkAreaCollision(otter, areaBoundaryX, direction) {
         if (!otter.BB) return false;

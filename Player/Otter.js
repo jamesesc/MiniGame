@@ -58,29 +58,25 @@ class Otter {
         const WALK_SPEED = 150;
         const RUN_SPEED = 3000;
         
-        if (this.game.keys["a"]) {
+        if (this.game.keys["e"]) {
+            this.action = "spin";
+        } else if (this.game.keys["s"]) {
+            this.faceDirection = "Right";
+            this.action = "sleep";
+        } else if (this.game.keys["a"]) {
             this.faceDirection = "Left";
             let isRunning = this.game.keys["Shift"];
             this.action = "run"; 
             this.x -= (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
-        } 
-        else if (this.game.keys["d"]) {
+        } else if (this.game.keys["d"]) {
             this.faceDirection = "Right";
             let isRunning = this.game.keys["Shift"];
             this.action = "run"; 
             this.x += (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
-        } else if (this.game.keys["s"]) {
-            this.faceDirection = "Right";
-            this.action = "sleep";
-        } else if (this.game.keys["e"]) {
-            this.faceDirection = "Right";
-            this.action = "spin"
-        }
-
-
+        } 
         this.updateBB();
-
     }
+
     draw(ctx) {
         let currentAnim = this.animations[this.action] || this.animations["idle"];
         
@@ -109,14 +105,29 @@ class Otter {
     }
 
 updateBB() {
-    this.lastBB = this.BB;
-    
-    if (this.faceDirection === "Right") {
-        this.BB = new BoundingBox(this.x + 305, this.y + 235, 100, 250);
-    } else {
-        // TODO: FIX THIS 
-        this.BB = new BoundingBox(this.x + 305, this.y + 235, 100, 250); 
+        this.lastBB = this.BB;
+
+        let width, height, xOffset, yOffset;
+
+        if (this.action === "spin") {
+            width = 500;   
+            height = 60; 
+            xOffset = 60;
+            yOffset = 400; 
+        } else {
+            width = 100;
+            height = 250;
+            xOffset = 305;
+            yOffset = 235;
+        }
+
+
+        if (this.faceDirection === "Right") {
+            this.BB = new BoundingBox(this.x + xOffset, this.y + yOffset, width, height);
+        } else {
+            let leftXOffset = 400 - xOffset; 
+            this.BB = new BoundingBox(this.x + leftXOffset, this.y + yOffset, width, height); 
+        }
     }
-}
 }
 
