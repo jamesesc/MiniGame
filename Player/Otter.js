@@ -78,14 +78,6 @@ class Otter {
 
         this.updateBB();
 
-        this.game.entities.forEach(entity => {
-            if (entity.BB && this.BB.collide(entity.BB)) {
-                if (entity !== this) { 
-                    // Collison Logic here
-                }
-            }
-        });
-
     }
     draw(ctx) {
         let currentAnim = this.animations[this.action] || this.animations["idle"];
