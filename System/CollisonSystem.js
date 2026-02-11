@@ -17,4 +17,18 @@ class CollisionSystem {
             }
         }
     }
+
+
+    static checkAreaCollision(otter, areaBoundaryX, direction) {
+        if (!otter.BB) return false;
+        
+        const boundaryBox = new BoundingBox(
+            areaBoundaryX,  
+            0,
+            10,                 // thickness
+            1100                // full height
+        );
+        
+        return otter.BB.collide(boundaryBox);
+    }
 }

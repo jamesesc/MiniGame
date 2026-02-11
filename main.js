@@ -1,5 +1,9 @@
-const gameEngine = new GameEngine({ debugging: true });
-const ASSET_MANAGER = new AssetManager();
+import { WorldGenerator } from './Background/WorldGenerator.js';
+import { WorldManager } from './Background/WorldManager.js';
+
+
+window.gameEngine = new GameEngine({ debugging: true });
+window.ASSET_MANAGER = new AssetManager();
 
 // Ground Tiles
 ASSET_MANAGER.queueDownload("./Assets/Ground/Ground-1.png");
@@ -76,6 +80,8 @@ ASSET_MANAGER.downloadAll(() => {
     const canvas = document.getElementById("gameWorld");
     const ctx = canvas.getContext("2d");
 
+    
+
     gameEngine.init(ctx);
 
 
@@ -113,7 +119,7 @@ ASSET_MANAGER.downloadAll(() => {
 
 
 
-    
+
 
     // Ground
 
@@ -125,6 +131,12 @@ ASSET_MANAGER.downloadAll(() => {
 
     // Make sure that images is high quality 
 	ctx.imageSmoothingEnabled = false;
+
+
+    
+    const worldGen = new WorldGenerator('SomeLevel');
+    const worldManager = new WorldManager(gameEngine, worldGen); 
+    gameEngine.addEntity(worldManager);
 
 
 

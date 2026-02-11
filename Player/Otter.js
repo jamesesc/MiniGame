@@ -54,7 +54,7 @@ class Otter {
    update() {
         this.action = "idle";
         const WALK_SPEED = 150;
-        const RUN_SPEED = 600;
+        const RUN_SPEED = 3000;
         
         if (this.game.keys["a"]) {
             this.faceDirection = "Left";
