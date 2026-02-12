@@ -25,6 +25,7 @@ class Otter {
         this.stamina = 100;
         this.staminaDrain = 30; 
         this.staminaRegen = 20; 
+        this.staminaSpinCost = 30;
     }
 
     loadSequence(path, prefix, count) {
@@ -70,14 +71,20 @@ class Otter {
         const WALK_SPEED = 150;
         const RUN_SPEED = 3000;
 
-        const isMoving = this.game.keys["a"] || this.game.keys["d"];
+         const isMoving = this.game.keys["a"] || this.game.keys["d"];
         const isHoldingShift = this.game.keys["Shift"];
-        const isRunning = isMoving && isHoldingShift && this.stamina > 0;
+        const isPressingSpin = this.game.keys["e"];
 
-        if (isRunning) {
+        const isSpinning = isPressingSpin && this.stamina > 0;
+        const isRunning = isMoving && isHoldingShift && this.stamina > 0 && !isSpinning;
+
+        if (isSpinning) {
+            this.stamina -= this.staminaSpinCost * this.game.clockTick;
+        } else if (isRunning) {
             this.stamina -= this.staminaDrain * this.game.clockTick;
         } else {
-            if (this.stamina <= 0 && isHoldingShift) {
+            if (this.stamina <= 0 && (isHoldingShift || isPressingSpin)) {
+
             } else {
                 this.stamina += this.staminaRegen * this.game.clockTick;
             }
