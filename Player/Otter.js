@@ -28,6 +28,12 @@ class Otter {
         this.staminaSpinCost = 30;
 
         this.moveHoldTimer = 0;
+
+        this.velocity = { x: 0, y: 0 };
+        this.gravity = 1500;      // How fast the otter falls
+        this.jumpStrength = -800; // How high the otter leaps
+        this.groundY = 680;      // The Y coordinate where the ground is
+        this.landTimer = 0;      // Timer to hold the landing pose
     }
 
     loadSequence(path, prefix, count) {
@@ -47,7 +53,9 @@ class Otter {
             { name: "idle", count: 4 },
             { name: "run", count: 3 },
             { name: "sleep", count: 6},
-            { name: "spin", count: 3}
+            { name: "spin", count: 3},
+            { name: "jump", count: 4}, 
+            { name: "land", count: 3}  
         ];
 
         states.forEach(state => {
@@ -65,67 +73,83 @@ class Otter {
             return; 
         }
 
-        if (this.damageCooldown > 0) {
-            this.damageCooldown -= this.game.clockTick;
-        }
-
-        this.action = "idle";
+        const tick = this.game.clockTick; 
         const WALK_SPEED = 150;
-        const RUN_SPEED = 3000;
+        const RUN_SPEED = 1000;
         const HOLD_THRESHOLD = 0.15; 
 
         const isA = this.game.keys["a"];
         const isD = this.game.keys["d"];
+        const isW = this.game.keys["w"];
+        const isS = this.game.keys["s"];
+        const isE = this.game.keys["e"];
         const isHoldingShift = this.game.keys["Shift"];
-        const isPressingSpin = this.game.keys["e"];
 
         if (isA) this.faceDirection = "Left";
         if (isD) this.faceDirection = "Right";
 
         if (isA || isD) {
-            this.moveHoldTimer += this.game.clockTick;
+            this.moveHoldTimer += tick;
         } else {
             this.moveHoldTimer = 0; 
         }
 
         const isHoldingMove = this.moveHoldTimer > HOLD_THRESHOLD;
+        const canSprint = isHoldingShift && this.stamina > 0 && isHoldingMove;
+        const isSpinning = isE && this.stamina > 0; 
 
-        const isSpinning = isPressingSpin && this.stamina > 0;
-        const isRunning = isHoldingMove && isHoldingShift && this.stamina > 0 && !isSpinning;
+        if (isW && this.y >= this.groundY) {
+            this.velocity.y = this.jumpStrength;
+            this.landTimer = 0;
+        }
 
-        if (isSpinning) {
-            this.stamina -= this.staminaSpinCost * this.game.clockTick;
-        } else if (isRunning) {
-            this.stamina -= this.staminaDrain * this.game.clockTick;
+        if (this.y < this.groundY || this.velocity.y < 0) {
+            this.velocity.y += this.gravity * tick;
+            this.y += this.velocity.y * tick;
+        }
+
+        if (this.y < this.groundY) {
+            this.action = "jump";
         } else {
-            if (this.stamina <= 0 && (isHoldingShift || isPressingSpin)) {
+            if (this.action === "jump") {
+                this.action = "land";
+                this.landTimer = 0.2;
+            }
+            this.y = this.groundY;
+            this.velocity.y = 0;
 
+            if (this.landTimer > 0) {
+                this.action = "land";
+                this.landTimer -= tick;
+            } else if (isSpinning) {
+                this.action = "spin";
+            } else if (isHoldingMove) {
+                this.action = "run";
+            } else if (isS) {
+                this.action = "sleep";
             } else {
-                this.stamina += this.staminaRegen * this.game.clockTick;
+                this.action = "idle";
             }
         }
 
-        if (this.stamina < 0) this.stamina = 0;
-        if (this.stamina > this.maxStamina) this.stamina = this.maxStamina;
+        if (this.action === "spin") {
+            this.stamina -= this.staminaSpinCost * tick;
+        } else if (canSprint) {
+            this.stamina -= this.staminaDrain * tick;
+        } else {
+            if (!(isHoldingShift && isHoldingMove) && !isE) {
+                this.stamina = Math.min(this.maxStamina, this.stamina + this.staminaRegen * tick);
+            }
+        }
+        this.stamina = Math.max(0, this.stamina);
 
-        
-        if (this.game.keys["e"]) {
-            this.action = "spin";
-        } else if (this.game.keys["s"]) {
-            this.faceDirection = "Right";
-            this.action = "sleep";
-        } else if (isA) {
-            if (isHoldingMove) {
-                this.action = "run";
-                this.x -= (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
-            }
-        } else if (isD) {
-            if (isHoldingMove) {
-                this.action = "run";
-                this.x += (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
-            }
-        } 
-        
+        if (isHoldingMove) {
+            let currentSpeed = canSprint ? RUN_SPEED : WALK_SPEED;
+            if (isA) this.x -= currentSpeed * tick;
+            if (isD) this.x += currentSpeed * tick;
+        }
+
+        if (this.damageCooldown > 0) this.damageCooldown -= tick;
         this.updateBB();
     }
 
@@ -144,11 +168,8 @@ class Otter {
             currentAnim.drawFrame(this.game.clockTick, ctx, this.x, this.y);
         } else {
             ctx.save();
-            // 1. Move to the horizontal center of the otter's body
             ctx.translate(this.x + pivotX, this.y); 
-            // 2. Flip only the X axis
             ctx.scale(-1, 1);
-            // 3. Draw relative to that center point
             currentAnim.drawFrame(this.game.clockTick, ctx, -pivotX, 0);
             ctx.restore();
         }
@@ -220,12 +241,12 @@ class Otter {
 
      getBBData() {
         let width, height, xOffset, yOffset;
-        if (this.action === "spin") {
-            width = 500; height = 60; xOffset = 60; yOffset = 400; 
-        } else if (this.action === "run") {
+        if (this.action === "spin" || this.action === "run") {
             width = 500; height = 60; xOffset = 60; yOffset = 400; 
         } else if (this.action === "sleep") { 
             width = 315; height = 60; xOffset = 130; yOffset = 400;         
+        } else if (this.action === "jump" || this.action === "land") {
+            width = 200; height = 200; xOffset = 200; yOffset = 250; 
         } else {
             width = 100; height = 250; xOffset = 305; yOffset = 235;
         }
