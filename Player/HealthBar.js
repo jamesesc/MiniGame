@@ -64,7 +64,9 @@ class HealthBar {
         else if (ratio > 0.3) ctx.fillStyle = this.hurtColor;
         else ctx.fillStyle = this.criticalColor;
 
-        const fillWidth = Math.max(0, (this.barWidth - 8) * ratio);
+        const visualRatio = Math.min(1, ratio); 
+        const fillWidth = Math.max(0, (this.barWidth - 8) * visualRatio);
+
         ctx.fillRect(barX + 4, barY + 4, fillWidth, this.barHeight - 8);
 
         ctx.strokeStyle = this.borderColor;

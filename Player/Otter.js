@@ -39,6 +39,8 @@ class Otter {
         this.ctrlHeld = false;
 
         this.cakeTimer = 0;
+
+        this.healFlash = 0;
     }
 
     loadSequence(path, prefix, count) {
@@ -77,6 +79,8 @@ class Otter {
             this.fragments = this.fragments.filter(f => f.alpha > 0);
             return; 
         }
+
+        if (this.healFlash > 0) this.healFlash -= this.game.clockTick;
 
         const tick = this.game.clockTick; 
         
@@ -201,6 +205,13 @@ class Otter {
         const { xOffset, width } = this.getBBData();
         const pivotX = xOffset + (width / 2);
 
+        const isGlowing = this.healFlash > 0 || this.cakeTimer > 0;
+        if (isGlowing) {
+            ctx.save();
+            ctx.shadowBlur = 25;
+            ctx.shadowColor = this.cakeTimer > 0 ? "rgb(255, 192, 203)" : "#ff1010";
+        }
+
         if (this.cakeTimer > 0) {
             ctx.save();
             ctx.shadowBlur = 25;
@@ -228,6 +239,10 @@ class Otter {
         }
 
         if (this.cakeTimer > 0) ctx.restore(); 
+
+        if (isGlowing) {
+            ctx.restore();
+        }
 
     }
 

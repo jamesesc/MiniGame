@@ -14,8 +14,17 @@ class CollisionSystem {
 
             if (entity instanceof HeartItem && otter.BB && entity.BB && 
                 otter.BB.collide(entity.BB)) {
-                otter.health += 20;
-                entities.splice(i, 1); 
+                if (otter.health < 120) otter.health = Math.min(120, otter.health + 20);
+                    for (let j = 0; j < 5; j++) {
+                        let spawnX = otter.BB.x + 400;
+                        let spawnY = otter.BB.y + 300;
+                        
+                        otter.game.addEntity(new HeartParticle(otter.game, spawnX, spawnY));
+                    }
+
+                    otter.healFlash = 0.7; 
+
+                    entities.splice(i, 1); 
             }
         
     
