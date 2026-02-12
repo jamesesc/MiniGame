@@ -26,6 +26,8 @@ class Otter {
         this.staminaDrain = 30; 
         this.staminaRegen = 20; 
         this.staminaSpinCost = 30;
+
+        this.moveHoldTimer = 0;
     }
 
     loadSequence(path, prefix, count) {
@@ -70,13 +72,26 @@ class Otter {
         this.action = "idle";
         const WALK_SPEED = 150;
         const RUN_SPEED = 3000;
+        const HOLD_THRESHOLD = 0.15; 
 
-         const isMoving = this.game.keys["a"] || this.game.keys["d"];
+        const isA = this.game.keys["a"];
+        const isD = this.game.keys["d"];
         const isHoldingShift = this.game.keys["Shift"];
         const isPressingSpin = this.game.keys["e"];
 
+        if (isA) this.faceDirection = "Left";
+        if (isD) this.faceDirection = "Right";
+
+        if (isA || isD) {
+            this.moveHoldTimer += this.game.clockTick;
+        } else {
+            this.moveHoldTimer = 0; 
+        }
+
+        const isHoldingMove = this.moveHoldTimer > HOLD_THRESHOLD;
+
         const isSpinning = isPressingSpin && this.stamina > 0;
-        const isRunning = isMoving && isHoldingShift && this.stamina > 0 && !isSpinning;
+        const isRunning = isHoldingMove && isHoldingShift && this.stamina > 0 && !isSpinning;
 
         if (isSpinning) {
             this.stamina -= this.staminaSpinCost * this.game.clockTick;
@@ -99,14 +114,16 @@ class Otter {
         } else if (this.game.keys["s"]) {
             this.faceDirection = "Right";
             this.action = "sleep";
-        } else if (this.game.keys["a"]) {
-            this.faceDirection = "Left";
-            this.action = "run";
-            this.x -= (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
-        } else if (this.game.keys["d"]) {
-            this.faceDirection = "Right";
-            this.action = "run";
-            this.x += (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
+        } else if (isA) {
+            if (isHoldingMove) {
+                this.action = "run";
+                this.x -= (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
+            }
+        } else if (isD) {
+            if (isHoldingMove) {
+                this.action = "run";
+                this.x += (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
+            }
         } 
         
         this.updateBB();
