@@ -1,6 +1,4 @@
-import { WorldGenerator } from './Background/WorldGenerator.js';
-import { WorldManager } from './Background/WorldManager.js';
-
+import { SceneManager } from "./System/SceneManager.js"; // Added { } and .js
 
 window.gameEngine = new GameEngine({ debugging: true });
 window.ASSET_MANAGER = new AssetManager();
@@ -81,65 +79,8 @@ for (let i = 1; i <= 6; i++) {
 ASSET_MANAGER.downloadAll(() => {
     const canvas = document.getElementById("gameWorld");
     const ctx = canvas.getContext("2d");
-
-    
-
     gameEngine.init(ctx);
-
-
-
-    // Background Entity 
-    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/5-SkyBackground.png", .1, -1500, 11));
-    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/4-TreesBackground.png", 0.1, 100, 4));
-    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/3-Trees.png", 0.3, 0, 5));
-    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/2-Trees.png", 0.5, 400, 2));
-    gameEngine.addEntity(new ParallaxLayer(gameEngine, "./Assets/Background/1-Trees.png", 0.7, -25 , 4));
-
-
-
-    // Items
-    gameEngine.addEntity(new HeartItem(gameEngine));
-
-    gameEngine.addEntity(new CakeItem(gameEngine));
-
-    const playerHealth = new Health(100);  
-    gameEngine.addEntity(new HealthBar(gameEngine, playerHealth));
-    
-    // Mobs  
-    
-    // Bee
-    gameEngine.addEntity(new Bee(gameEngine));
-
-    // Frog
-    gameEngine.addEntity(new Frog(gameEngine));
-
-    // Mushroom
-    gameEngine.addEntity(new Mushroom(gameEngine))
-
-
-
-
-
-    // Ground
-
-    // Ground Type 1
-    gameEngine.addEntity(new Ground(gameEngine));
-
-    // Ground Type 2
-    //gameEngine.addEntity(new Background(gameEngine));
-
-
     gameEngine.addEntity(new SceneManager(gameEngine));
-
-	ctx.imageSmoothingEnabled = false;
-
-
-    
-    const worldGen = new WorldGenerator('SomeLevel');
-    const worldManager = new WorldManager(gameEngine, worldGen); 
-    gameEngine.addEntity(worldManager);
-
-
-
+    ctx.imageSmoothingEnabled = false;
     gameEngine.start();
 });
