@@ -21,8 +21,8 @@ class Otter {
         this.dead = false;
         this.fragments = [];
 
-        this.maxStamina = 100;
-        this.stamina = 100;
+        this.maxStamina = 300;
+        this.stamina = 300;
         this.staminaDrain = 30; 
         this.staminaRegen = 20; 
         this.staminaSpinCost = 30;
@@ -98,8 +98,17 @@ class Otter {
         const canSprint = isHoldingShift && this.stamina > 0 && isHoldingMove;
         const isSpinning = isE && this.stamina > 0; 
 
-        if (isW && this.y >= this.groundY) {
-            this.velocity.y = this.jumpStrength;
+        if (isW && this.y >= this.groundY && this.stamina >= 15) {
+            let currentJumpStrength = this.jumpStrength;
+
+            if (canSprint) {
+                currentJumpStrength *= 1.4; 
+            }
+
+
+            this.velocity.y = currentJumpStrength;
+            this.stamina -= 15; 
+            
             this.landTimer = 0;
         }
 
