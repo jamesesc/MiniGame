@@ -78,11 +78,11 @@ class Otter {
         const RUN_SPEED = 1000;
         const HOLD_THRESHOLD = 0.15; 
 
-        const isA = this.game.keys["a"];
-        const isD = this.game.keys["d"];
-        const isW = this.game.keys["w"];
-        const isS = this.game.keys["s"];
-        const isE = this.game.keys["e"];
+        const isA = this.game.keys["a"] || this.game.keys["A"];
+        const isD = this.game.keys["d"] || this.game.keys["D"];
+        const isW = this.game.keys["w"] || this.game.keys["W"];
+        const isS = this.game.keys["s"] || this.game.keys["S"];
+        const isE = this.game.keys["e"] || this.game.keys["E"];
         const isHoldingShift = this.game.keys["Shift"];
 
         if (isA) this.faceDirection = "Left";
