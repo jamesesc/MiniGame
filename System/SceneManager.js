@@ -9,13 +9,19 @@ export class SceneManager {
         this.x = 0;
         this.y = 0;
 
-        this.title = false; 
+        this.title = true; 
         this.introCamera = false;
         this.gameOver = false; 
         this.fadeAlpha = 0;    
         this.spacePressed = false;
 
         this.loadLevel();
+
+        const index = this.game.entities.indexOf(this);
+        if (index > -1) {
+            this.game.entities.splice(index, 1);
+            this.game.entities.push(this);
+        }
     }
 
     loadLevel() {
@@ -84,10 +90,14 @@ export class SceneManager {
         }
 
         if (this.fadeAlpha > 0) {
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0); 
+            
             ctx.globalAlpha = this.fadeAlpha;
             ctx.fillStyle = "black";
-            ctx.fillRect(this.x, this.y, ctx.canvas.width, ctx.canvas.height); 
-            ctx.globalAlpha = 1.0; 
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height); 
+            
+            ctx.restore();
         }
 
         if (this.gameOver) {
@@ -101,6 +111,23 @@ export class SceneManager {
         }
     }
     update() {
+         const foregroundClasses = [Ground, Otter, HealthBar, this]; 
+
+         
+
+        foregroundClasses.forEach(Cls => {
+        const entity = Cls === this ? this : this.game.entities.find(e => e instanceof Cls);
+        
+        if (entity) {
+            const index = this.game.entities.indexOf(entity);
+            if (index > -1) {
+                this.game.entities.splice(index, 1);
+                this.game.entities.push(entity);
+            }
+        }
+    });
+    
+
         if (this.gameOver) {
             if (this.game.click || this.game.keys[' ']) {
                 this.game.click = null;

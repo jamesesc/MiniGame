@@ -70,23 +70,23 @@ export class WorldManager {
     }
 
     spawnEnemiesForArea(area) {
-    const enemyDataList = this.worldGen.generateEnemiesInArea(area, area.start, area.end - area.start);
+        const enemyDataList = this.worldGen.generateEnemiesInArea(area, area.start, area.end - area.start);
 
-    enemyDataList.forEach(data => {
-        let enemy;
-        switch (data.type) {
-            case 'mushroom':
-                enemy = new Mushroom(this.game, data.x, 950); 
-                break;
-            case 'frog':
-                enemy = new Frog(this.game, data.x, 1040);
-                break;
-            case 'bee':
-                let randomSkyY = 100 + (Math.random() * 600);
-                enemy = new Bee(this.game, data.x, randomSkyY);
-                break;
-        }
-        if (enemy) this.game.addEntity(enemy);
-    });
-}
+        enemyDataList.forEach(data => {
+            let enemy;
+            switch (data.type) {
+                case 'mushroom':
+                    enemy = new Mushroom(this.game, data.x, 950); 
+                    break;
+                case 'frog':
+                    enemy = new Frog(this.game, data.x, 1040);
+                    break;
+                case 'bee':
+                    let randomSkyY = 100 + (Math.random() * 400);
+                    enemy = new Bee(this.game, data.x, randomSkyY);
+                    break;
+            }
+            if (enemy) this.game.addEntity(enemy);
+        });
+    }
 }
