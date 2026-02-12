@@ -3,8 +3,8 @@ class Otter {
         this.game = game;
         this.x = 500;
         this.y = 680;
-        this.w = 64; 
-        this.h = 64;
+        this.w = 600; 
+        this.h = 600;
 
         this.faceDirection = "Right";
         this.action = "idle"; 
@@ -119,14 +119,20 @@ class Otter {
         }
 
         let currentAnim = this.animations[this.action] || this.animations["idle"];
+
+        const { xOffset, width } = this.getBBData();
+        const pivotX = xOffset + (width / 2);
         
-        if (this.faceDirection === "Right") {
+         if (this.faceDirection === "Right") {
             currentAnim.drawFrame(this.game.clockTick, ctx, this.x, this.y);
         } else {
             ctx.save();
-            ctx.translate(this.x + this.w, this.y); 
+            // 1. Move to the horizontal center of the otter's body
+            ctx.translate(this.x + pivotX, this.y); 
+            // 2. Flip only the X axis
             ctx.scale(-1, 1);
-            currentAnim.drawFrame(this.game.clockTick, ctx, 0, 0);
+            // 3. Draw relative to that center point
+            currentAnim.drawFrame(this.game.clockTick, ctx, -pivotX, 0);
             ctx.restore();
         }
 
@@ -138,23 +144,8 @@ class Otter {
     }
 
     updateBB() {
-        let width, height, xOffset, yOffset;
-        if (this.action === "spin") {
-            width = 500; height = 60; xOffset = 60; yOffset = 400; 
-        } else if (this.action === "run") {
-            width = 500; height = 60; xOffset = 60; yOffset = 400; 
-        } else if (this.action === "sleep") { 
-            width = 315; height = 60; xOffset = 130; yOffset = 400;         
-        } else {
-            width = 100; height = 250; xOffset = 305; yOffset = 235;
-        }
-
-        if (this.faceDirection === "Right") {
-            this.BB = new BoundingBox(this.x + xOffset, this.y + yOffset, width, height);
-        } else {
-            let leftXOffset = 400 - xOffset; 
-            this.BB = new BoundingBox(this.x + leftXOffset, this.y + yOffset, width, height); 
-        }
+        const { width, height, xOffset, yOffset } = this.getBBData();
+        this.BB = new BoundingBox(this.x + xOffset, this.y + yOffset, width, height);
     }
 
     takeDamage(amount) {
@@ -208,5 +199,19 @@ class Otter {
                 ));
             }
         }
+    }
+
+     getBBData() {
+        let width, height, xOffset, yOffset;
+        if (this.action === "spin") {
+            width = 500; height = 60; xOffset = 60; yOffset = 400; 
+        } else if (this.action === "run") {
+            width = 500; height = 60; xOffset = 60; yOffset = 400; 
+        } else if (this.action === "sleep") { 
+            width = 315; height = 60; xOffset = 130; yOffset = 400;         
+        } else {
+            width = 100; height = 250; xOffset = 305; yOffset = 235;
+        }
+        return { width, height, xOffset, yOffset };
     }
 }
