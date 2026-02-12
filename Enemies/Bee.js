@@ -1,12 +1,16 @@
 class Bee {
-    constructor(game) {
+    constructor(game, x, y) {
         this.game = game;
         this.scale = 6;
         this.width = 60;
         this.height = 60;
         
-        this.x = 2500; 
-        this.y = 400;
+        this.x = x ; 
+        this.y = y ;
+
+        // Good: x, 2500, y 400 TESTING
+        // this.x = x || 2500 ; 
+        // this.y = y || 400;
         
         this.startY = this.y; 
 

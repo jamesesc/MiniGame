@@ -70,11 +70,10 @@ export class WorldGenerator {
         if (newArea.name !== this.currentAreaName) {
             this.currentAreaName = newArea.name;
 
-            // ADD THIS LOG HERE:
-        console.log("%c AREA CHANGE ", "background: #222; color: #bada55", "Now entering: " + this.currentAreaName);
+            console.log("%c AREA CHANGE ", "background: #222; color: #bada55", "Now entering: " + this.currentAreaName);
 
             if (onAreaChange) {
-                onAreaChange(newArea.name); 
+                onAreaChange(newArea); 
             }
         }
         

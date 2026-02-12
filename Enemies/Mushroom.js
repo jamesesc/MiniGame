@@ -1,12 +1,17 @@
 class Mushroom {
-    constructor(game) {
+    constructor(game, x, y) {
         this.game = game;
         this.scale = 6;
         this.width = 80;
         this.height = 40;
         
-        this.x = 1700; 
-        this.y = 950;
+        this.x = x ; 
+        this.y = y ;
+
+        // Good: x, 1700, y 950 TESTING
+        // this.x = x || 1700; 
+        // this.y = y || 950;
+
 
         this.maxHealth = 100;
         this.health = 100; 

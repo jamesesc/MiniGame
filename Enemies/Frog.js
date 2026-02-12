@@ -1,12 +1,17 @@
 class Frog {
-    constructor(game) {
+    constructor(game, x, y) {
         this.game = game;
         this.scale = 6;
         this.width = 30;
         this.height = 31;
         
-        this.x = 2000; 
-        this.y = 1040;
+        this.x = x; 
+        this.y = y;
+
+        
+        // Good: x, 2000, y 1040 TESTING
+        // this.x = x || 2000; 
+        // this.y = y || 1040;
 
         this.maxHealth = 100;
         this.health = 100; 

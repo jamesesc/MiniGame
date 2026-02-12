@@ -6,21 +6,40 @@ export class WorldManager {
         this.worldGen = worldGen;
         this.player = null;
 
+        this.spawnedAreas = new Set(); 
+
+
         this.notification = new AreaNotification(game);
         this.game.addEntity(this.notification);
+
+        const firstArea = this.worldGen.getAreaAtPosition(0);
+        this.spawnEnemiesForArea(firstArea);
+        this.spawnedAreas.add(firstArea.name);
     }
 
-update() {
+    update() {
 
         const player = this.game.camera ? this.game.camera.otter : null;
-        
+
         if (player) {
+             this.game.entities.forEach(entity => {
+            if ((entity instanceof Bee || entity instanceof Frog || entity instanceof Mushroom) && 
+                    entity.x < player.x - 2000) {
+                    entity.removeFromWorld = true;
+                }
+            });
 
-            const playerNose = player.x; 
+            const spawnLookAhead = 6000; 
+            const areaAhead = this.worldGen.getAreaAtPosition(player.x + spawnLookAhead);
 
-            this.worldGen.updateAreaTransition(playerNose, (newName) => {
-                console.log("Triggering Notification for: " + newName);
-                this.notification.show(newName);
+            if (!this.spawnedAreas.has(areaAhead.name)) {
+                console.log("Pre-spawning enemies for: " + areaAhead.name);
+                this.spawnEnemiesForArea(areaAhead);
+                this.spawnedAreas.add(areaAhead.name);
+            }
+
+            this.worldGen.updateAreaTransition(player.x, (newArea) => {
+                this.notification.show(newArea.name);
             });
         }
     }
@@ -49,4 +68,25 @@ update() {
     }
 
     }
+
+    spawnEnemiesForArea(area) {
+    const enemyDataList = this.worldGen.generateEnemiesInArea(area, area.start, area.end - area.start);
+
+    enemyDataList.forEach(data => {
+        let enemy;
+        switch (data.type) {
+            case 'mushroom':
+                enemy = new Mushroom(this.game, data.x, 950); 
+                break;
+            case 'frog':
+                enemy = new Frog(this.game, data.x, 1040);
+                break;
+            case 'bee':
+                let randomSkyY = 100 + (Math.random() * 600);
+                enemy = new Bee(this.game, data.x, randomSkyY);
+                break;
+        }
+        if (enemy) this.game.addEntity(enemy);
+    });
+}
 }

@@ -30,11 +30,7 @@ export class SceneManager {
 
         const playerHealth = new Health(100);  
         this.game.addEntity(new HealthBar(this.game, playerHealth));
-        
-        this.game.addEntity(new Bee(this.game));
-
-        this.game.addEntity(new Frog(this.game));
-        this.game.addEntity(new Mushroom(this.game));
+    
 
         this.game.addEntity(new Ground(this.game));
 
