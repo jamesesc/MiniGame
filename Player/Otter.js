@@ -1,6 +1,3 @@
-/**
- * The player class.
- */
 class Otter {
     constructor(game) {
         this.game = game;
@@ -14,10 +11,15 @@ class Otter {
 
         this.maxHealth = 100;
         this.health = 100; 
+        this.damageCooldown = 0; 
+
         this.animations = {}; 
         this.createAnimations();
 
         this.updateBB();
+
+        this.dead = false;
+        this.fragments = [];
     }
 
     loadSequence(path, prefix, count) {
@@ -25,10 +27,7 @@ class Otter {
         for (let i = 1; i <= count; i++) {
             let fileName = `${path}${prefix}${i}.png`;
             let asset = ASSET_MANAGER.getAsset(fileName);
-            
-            if (!asset) {
-                console.log("ERROR: Otter.js wanted to find: " + fileName);
-            }
+            if (!asset) console.log("ERROR: Otter.js wanted to find: " + fileName);
             frames.push(asset);
         }
         return frames;
@@ -36,7 +35,6 @@ class Otter {
 
     createAnimations() {
         const basePath = "./Assets/Otter/";
-        
         const states = [
             { name: "idle", count: 4 },
             { name: "run", count: 3 },
@@ -48,12 +46,22 @@ class Otter {
             let folder = state.name.charAt(0).toUpperCase() + state.name.slice(1);
             let prefix = `otter_${state.name}_`; 
             let path = `${basePath}${folder}/`;
-            
+            // Note: frameDuration is 0.15
             this.animations[state.name] = new AnimatorFromMultipleImages(this.loadSequence(path, prefix, state.count), 0.15);
         });
     }
 
-   update() {
+    update() {
+        if (this.dead) {
+            this.fragments.forEach(f => f.update());
+            this.fragments = this.fragments.filter(f => f.alpha > 0);
+            return; 
+        }
+
+        if (this.damageCooldown > 0) {
+            this.damageCooldown -= this.game.clockTick;
+        }
+
         this.action = "idle";
         const WALK_SPEED = 150;
         const RUN_SPEED = 3000;
@@ -74,10 +82,16 @@ class Otter {
             this.action = "run"; 
             this.x += (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
         } 
+        
         this.updateBB();
     }
 
     draw(ctx) {
+        if (this.dead) {
+            this.fragments.forEach(f => f.draw(ctx));
+            return;
+        }
+
         let currentAnim = this.animations[this.action] || this.animations["idle"];
         
         if (this.faceDirection === "Right") {
@@ -90,37 +104,20 @@ class Otter {
             ctx.restore();
         }
 
-
         if (this.game.options.debugging) {
             ctx.strokeStyle = "Red";
             ctx.lineWidth = 5;
-            ctx.beginPath();
-            ctx.strokeRect(
-                this.BB.x, 
-                this.BB.y, 
-                this.BB.width, 
-                this.BB.height
-            );
+            ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
         }
     }
 
-updateBB() {
-        this.lastBB = this.BB;
-
+    updateBB() {
         let width, height, xOffset, yOffset;
-
         if (this.action === "spin") {
-            width = 500;   
-            height = 60; 
-            xOffset = 60;
-            yOffset = 400; 
+            width = 500; height = 60; xOffset = 60; yOffset = 400; 
         } else {
-            width = 100;
-            height = 250;
-            xOffset = 305;
-            yOffset = 235;
+            width = 100; height = 250; xOffset = 305; yOffset = 235;
         }
-
 
         if (this.faceDirection === "Right") {
             this.BB = new BoundingBox(this.x + xOffset, this.y + yOffset, width, height);
@@ -129,5 +126,57 @@ updateBB() {
             this.BB = new BoundingBox(this.x + leftXOffset, this.y + yOffset, width, height); 
         }
     }
-}
 
+    takeDamage(amount) {
+        if (this.dead) return; 
+
+        if (this.damageCooldown <= 0 && this.health > 0) {
+            this.health -= amount;
+            this.damageCooldown = 0.5; 
+            console.log("Otter took damage! Health: " + this.health);
+            
+            if (this.health <= 0) {
+                this.health = 0;
+                this.die(); // This triggers the fragments
+            }
+        }
+    }
+
+    die() {
+        this.dead = true;
+        this.createDissolveEffect();
+        console.log("Otter Dissolving!");
+    }
+
+    createDissolveEffect() {
+        let currentAnim = this.animations[this.action] || this.animations["idle"];
+        
+        let frameArray = currentAnim.imageArray;
+
+        if (!frameArray || frameArray.length === 0) {
+            console.error("Could not find imageArray in Animator!");
+            return;
+        }
+
+        let frameIndex = Math.floor(currentAnim.elapsedTime / currentAnim.frameDuration) % frameArray.length;
+        let sprite = frameArray[frameIndex];
+
+        const scale = currentAnim.scale || 3;
+        const fragmentSize = 8; 
+
+        for (let i = 0; i < sprite.width; i += fragmentSize) {
+            for (let j = 0; j < sprite.height; j += fragmentSize) {
+                
+                this.fragments.push(new DeathFragment(
+                    this.game,
+                    this.x + (i * scale), 
+                    this.y + (j * scale), 
+                    fragmentSize * scale,
+                    sprite,
+                    i, j, 
+                    fragmentSize, fragmentSize
+                ));
+            }
+        }
+    }
+}

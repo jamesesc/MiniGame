@@ -20,12 +20,17 @@ class CollisionSystem {
 
 
 
-if (entity instanceof Frog || entity instanceof Mushroom || entity instanceof Bee) { 
+    if (entity instanceof Frog || entity instanceof Mushroom || entity instanceof Bee) { 
                 if (otter.BB && entity.BB && otter.BB.collide(entity.BB)) {
                 
                     if (otter.action === "spin") {
                         if (entity.takeDamage) {
                             entity.takeDamage(25); // Deal 25 damage
+                            if (entity.health <= 0) {
+                                entities.splice(i, 1);
+                            } else {
+                                otter.takeDamage(5); 
+                            }
                         }
 
                         if (entity.health <= 0) {

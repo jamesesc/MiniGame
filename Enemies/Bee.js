@@ -108,7 +108,7 @@ class Bee {
 
             if (player && player.BB && this.BB.collide(player.BB)) {
                 if (typeof player.takeDamage === 'function') {
-                    player.takeDamage(10); // Adjust damage amount as needed
+                    player.takeDamage(50); // Adjust damage amount as needed
                 }
                 
                 this.charging = false;
