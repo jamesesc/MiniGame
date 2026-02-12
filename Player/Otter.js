@@ -34,6 +34,9 @@ class Otter {
         this.jumpStrength = -800; // How high the otter leaps
         this.groundY = 680;      // The Y coordinate where the ground is
         this.landTimer = 0;      // Timer to hold the landing pose
+
+        this.shiftLock = false;
+        this.ctrlHeld = false;
     }
 
     loadSequence(path, prefix, count) {
@@ -83,10 +86,23 @@ class Otter {
         const isW = this.game.keys["w"] || this.game.keys["W"];
         const isS = this.game.keys["s"] || this.game.keys["S"];
         const isE = this.game.keys["e"] || this.game.keys["E"];
+        const isCtrl = this.game.keys["Control"]; 
         const isHoldingShift = this.game.keys["Shift"];
 
-        if (isA) this.faceDirection = "Left";
-        if (isD) this.faceDirection = "Right";
+        if (isCtrl && !this.ctrlHeld) {
+            this.shiftLock = !this.shiftLock;
+            this.ctrlHeld = true;
+            console.log("Shift Lock: " + (this.shiftLock ? "ON" : "OFF"));
+        }
+        if (!isCtrl) {
+            this.ctrlHeld = false;
+        }
+
+        if (!this.shiftLock) {
+            if (isA) this.faceDirection = "Left";
+            if (isD) this.faceDirection = "Right";
+        }
+
 
         if (isA || isD) {
             this.moveHoldTimer += tick;
