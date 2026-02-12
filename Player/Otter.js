@@ -141,6 +141,10 @@ class Otter {
         let width, height, xOffset, yOffset;
         if (this.action === "spin") {
             width = 500; height = 60; xOffset = 60; yOffset = 400; 
+        } else if (this.action === "run") {
+            width = 500; height = 60; xOffset = 60; yOffset = 400; 
+        } else if (this.action === "sleep") { 
+            width = 315; height = 60; xOffset = 130; yOffset = 400;         
         } else {
             width = 100; height = 250; xOffset = 305; yOffset = 235;
         }
