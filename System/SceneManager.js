@@ -9,7 +9,7 @@ export class SceneManager {
         this.x = 0;
         this.y = 0;
 
-        this.title = true; 
+        this.title = false; 
         this.introCamera = false;
         this.gameOver = false; 
         this.fadeAlpha = 0;    

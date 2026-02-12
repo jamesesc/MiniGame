@@ -20,6 +20,11 @@ class Otter {
 
         this.dead = false;
         this.fragments = [];
+
+        this.maxStamina = 100;
+        this.stamina = 100;
+        this.staminaDrain = 30; 
+        this.staminaRegen = 20; 
     }
 
     loadSequence(path, prefix, count) {
@@ -46,7 +51,6 @@ class Otter {
             let folder = state.name.charAt(0).toUpperCase() + state.name.slice(1);
             let prefix = `otter_${state.name}_`; 
             let path = `${basePath}${folder}/`;
-            // Note: frameDuration is 0.15
             this.animations[state.name] = new AnimatorFromMultipleImages(this.loadSequence(path, prefix, state.count), 0.15);
         });
     }
@@ -65,6 +69,23 @@ class Otter {
         this.action = "idle";
         const WALK_SPEED = 150;
         const RUN_SPEED = 3000;
+
+        const isMoving = this.game.keys["a"] || this.game.keys["d"];
+        const isHoldingShift = this.game.keys["Shift"];
+        const isRunning = isMoving && isHoldingShift && this.stamina > 0;
+
+        if (isRunning) {
+            this.stamina -= this.staminaDrain * this.game.clockTick;
+        } else {
+            if (this.stamina <= 0 && isHoldingShift) {
+            } else {
+                this.stamina += this.staminaRegen * this.game.clockTick;
+            }
+        }
+
+        if (this.stamina < 0) this.stamina = 0;
+        if (this.stamina > this.maxStamina) this.stamina = this.maxStamina;
+
         
         if (this.game.keys["e"]) {
             this.action = "spin";
@@ -73,13 +94,11 @@ class Otter {
             this.action = "sleep";
         } else if (this.game.keys["a"]) {
             this.faceDirection = "Left";
-            let isRunning = this.game.keys["Shift"];
-            this.action = "run"; 
+            this.action = "run";
             this.x -= (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
         } else if (this.game.keys["d"]) {
             this.faceDirection = "Right";
-            let isRunning = this.game.keys["Shift"];
-            this.action = "run"; 
+            this.action = "run";
             this.x += (isRunning ? RUN_SPEED : WALK_SPEED) * this.game.clockTick;
         } 
         

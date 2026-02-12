@@ -76,6 +76,23 @@ class HealthBar {
         ctx.textAlign = "center";
         ctx.fillText(Math.floor(currentHealth) + " / " + maxHealth, barX + this.barWidth / 2, barY + this.barHeight / 2 + 10);
 
+        const blueBarWidth = this.barWidth * .9; 
+        const blueBarHeight = this.barHeight * 0.4; 
+        const blueBarX = barX + 20; 
+        const blueBarY = barY + this.barHeight + 10; 
+        ctx.fillStyle = this.backColor;
+        ctx.fillRect(blueBarX, blueBarY, blueBarWidth, blueBarHeight);
+        const staminaRatio = (otter.stamina || 100) / (otter.maxStamina || 100);
+        if (otter.stamina <= 0 && this.game.keys["Shift"]) {
+            ctx.fillStyle = "black";
+        } else {
+            ctx.fillStyle = "#32a1e3"; 
+        }
+        ctx.fillRect(blueBarX + 4, blueBarY + 4, Math.max(0, (blueBarWidth - 8) * staminaRatio), blueBarHeight - 8);
+        ctx.strokeStyle = this.borderColor;
+        ctx.lineWidth = 6;
+        ctx.strokeRect(blueBarX, blueBarY, blueBarWidth, blueBarHeight);
+
         ctx.restore();
     }
 }
