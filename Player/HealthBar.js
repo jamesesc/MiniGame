@@ -83,10 +83,12 @@ class HealthBar {
         ctx.fillStyle = this.backColor;
         ctx.fillRect(blueBarX, blueBarY, blueBarWidth, blueBarHeight);
         const staminaRatio = (otter.stamina || 100) / (otter.maxStamina || 100);
-        if (otter.stamina <= 0 && (this.game.keys["Shift"] || this.game.keys["e"])) {
+        if (otter.cakeTimer > 0) {
+            ctx.fillStyle = "#FF69B4";
+        } else if (otter.stamina <= 0 && (this.game.keys["Shift"] || this.game.keys["e"])) {
             ctx.fillStyle = "black";
         } else {
-            ctx.fillStyle = "#32a1e3"; 
+            ctx.fillStyle = "#32a1e3";
         }
         ctx.fillRect(blueBarX + 4, blueBarY + 4, Math.max(0, (blueBarWidth - 8) * staminaRatio), blueBarHeight - 8);
         ctx.strokeStyle = this.borderColor;

@@ -8,11 +8,13 @@ class CollisionSystem {
             
             if (entity instanceof CakeItem && otter.BB && entity.BB && 
                 otter.BB.collide(entity.BB)) {
+                otter.activateCakePower(); 
                 entities.splice(i, 1); 
             }
 
             if (entity instanceof HeartItem && otter.BB && entity.BB && 
                 otter.BB.collide(entity.BB)) {
+                otter.health += 20;
                 entities.splice(i, 1); 
             }
         

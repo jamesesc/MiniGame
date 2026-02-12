@@ -37,6 +37,8 @@ class Otter {
 
         this.shiftLock = false;
         this.ctrlHeld = false;
+
+        this.cakeTimer = 0;
     }
 
     loadSequence(path, prefix, count) {
@@ -77,6 +79,14 @@ class Otter {
         }
 
         const tick = this.game.clockTick; 
+        
+        if (this.cakeTimer > 0) {
+            this.cakeTimer -= tick;
+            this.stamina = this.maxStamina; // Keep stamina full while powerful
+        } else {
+            this.cakeTimer = 0;
+        }
+
         const WALK_SPEED = 150;
         const RUN_SPEED = 1000;
         const HOLD_THRESHOLD = 0.15; 
@@ -114,7 +124,7 @@ class Otter {
         const canSprint = isHoldingShift && this.stamina > 0 && isHoldingMove;
         const isSpinning = isE && this.stamina > 0; 
 
-        if (isW && this.y >= this.groundY && this.stamina >= 15) {
+        if (isW && this.y >= this.groundY && (this.stamina >= 15 || this.cakeTimer > 0)) {
             let currentJumpStrength = this.jumpStrength;
 
             if (canSprint) {
@@ -123,7 +133,9 @@ class Otter {
 
 
             this.velocity.y = currentJumpStrength;
-            this.stamina -= 15; 
+             if (this.cakeTimer <= 0) {
+                this.stamina -= 15;
+             }
             
             this.landTimer = 0;
         }
@@ -158,9 +170,9 @@ class Otter {
         }
 
         if (this.action === "spin") {
-            this.stamina -= this.staminaSpinCost * tick;
+            if (this.cakeTimer <= 0) this.stamina -= this.staminaSpinCost * tick;
         } else if (canSprint) {
-            this.stamina -= this.staminaDrain * tick;
+            if (this.cakeTimer <= 0) this.stamina -= this.staminaDrain * tick;
         } else {
             if (!(isHoldingShift && isHoldingMove) && !isE) {
                 this.stamina = Math.min(this.maxStamina, this.stamina + this.staminaRegen * tick);
@@ -188,6 +200,16 @@ class Otter {
 
         const { xOffset, width } = this.getBBData();
         const pivotX = xOffset + (width / 2);
+
+        if (this.cakeTimer > 0) {
+            ctx.save();
+            ctx.shadowBlur = 25;
+            ctx.shadowColor = "rgb(255, 192, 203)"; 
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;        
+            ctx.globalAlpha = .85; 
+            ctx.shadowBlur = 15;
+        }
         
          if (this.faceDirection === "Right") {
             currentAnim.drawFrame(this.game.clockTick, ctx, this.x, this.y);
@@ -204,6 +226,9 @@ class Otter {
             ctx.lineWidth = 5;
             ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
         }
+
+        if (this.cakeTimer > 0) ctx.restore(); 
+
     }
 
     updateBB() {
@@ -276,5 +301,10 @@ class Otter {
             width = 100; height = 250; xOffset = 305; yOffset = 235;
         }
         return { width, height, xOffset, yOffset };
+    }
+
+    activateCakePower() {
+        this.cakeTimer = 5; // 5 seconds of pink infinite stamina
+        console.log("CAKE POWER ACTIVATED!");
     }
 }
