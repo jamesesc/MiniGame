@@ -8,6 +8,13 @@ class Frog {
         this.x = x; 
         this.y = y;
 
+
+
+        this.agro = false;
+        this.detected = false;
+        this.attackSequenceState = 0;
+
+
         
         // Good: x, 2000, y 1040 TESTING
         // this.x = x || 2000; 
@@ -35,6 +42,9 @@ class Frog {
         this.Explosion = ASSET_MANAGER.getAsset("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Explosion.png");
 
         this.Attack = ASSET_MANAGER.getAsset("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Attack.png");
+        
+        this.Tongue = ASSET_MANAGER.getAsset("./Assets/Mobs/Frogs/BlueBlue/Frog Tongue.png");
+
 
 
 
@@ -43,6 +53,50 @@ class Frog {
         this.animation = new AnimatorFromOneImage(
             this.spritesheet, 35, 5, this.width, this.height, 4, .3, 1 
         );
+
+
+        this.AttackTongue1 = new AnimatorFromOneImage(
+            this.Tongue,
+            22, 8,
+            20, 15,
+            1, 
+            1,
+            1,
+            false
+        )
+
+        this.AttackTongue2 = new AnimatorFromOneImage(
+            this.Tongue,
+            61, 7,
+            20, 15,
+            1, 
+            1,
+            1,
+            false
+        )
+
+        
+        this.AttackTongue3 = new AnimatorFromOneImage(
+            this.Tongue,
+            105, 7,
+            20, 15,
+            1, 
+            1,
+            1,
+            false
+        )
+
+
+
+        this.AttackNoTongue = new AnimatorFromOneImage(
+            this.Attack,
+            11, 16,
+            47.5, 48,
+            3, 
+            .2,
+            3, 
+            false
+        )
 
         
         this.IdleAnimation = new AnimatorFromOneImage(
@@ -103,11 +157,15 @@ class Frog {
 
 
         this.animation.scale = this.scale;
+        this.AttackNoTongue.scale = this.scale;
         this.IdleAnimation.scale = this.scale;
         this.HurtAnimation.scale = this.scale;
         this.HopAnimation.scale = this.scale;
         this.ExplosionAnimation.scale = this.scale;
         this.AttackAnimation.scale = this.scale;
+        this.AttackTongue1.scale = this.scale;
+        this.AttackTongue2.scale = this.scale;
+        this.AttackTongue3.scale = this.scale; 
 
 
         this.updateBB();
@@ -117,8 +175,42 @@ class Frog {
         if (this.damageCooldown > 0) {
             this.damageCooldown -= this.game.clockTick;
         }
+
+        const centerX = this.x + (this.width * this.scale) / 2;
+        const centerY = this.y + (this.height * this.scale) / 2;
+        this.detectionZone.x = centerX;
+        this.detectionZone.y = centerY;
+        this.attackZone.x = centerX;
+        this.attackZone.y = centerY;
+
+        const player = this.game.camera.otter;
+
+        // Detection logic
+        if (!this.agro && player && player.BB) {
+            // Check if player enters detection zone
+            if (this.detectionZone.collide(player.BB)) {
+                this.agro = true;
+                this.detected = true;
+                console.log("PLAYER IS DETECTED")
+            }
+        } else if (this.agro && player && player.BB) {
+            // Check if player is in attack zone
+            if (this.attackZone.collide(player.BB)) {
+
+                console.log("ATTACK MODE")
+
+            }
+            
+            // Check if player leaves detection zone
+            if (!this.detectionZone.collide(player.BB)) {
+                this.agro = false;
+                console.log("Player Left")
+
+            }
+        }
+
         this.updateBB();
-    }   
+    }
 
     draw(ctx) {
         if (this.Hop) {
@@ -126,7 +218,7 @@ class Frog {
                 ctx.globalAlpha = 0.5; 
             }
             
-            this.HurtAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+            this.IdleAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
             
             ctx.globalAlpha = 1.0; 
         }
