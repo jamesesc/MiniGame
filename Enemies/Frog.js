@@ -19,11 +19,25 @@ class Frog {
         this.damageCooldown = 0; 
 
         this.spritesheet = ASSET_MANAGER.getAsset("./Assets/Mobs/Frogs/Green-Frog.png");
+        this.Idle = ASSET_MANAGER.getAsset("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Idle.png");
 
         this.animation = new AnimatorFromOneImage(
             this.spritesheet, 35, 5, this.width, this.height, 4, .3, 1 
         );
+
+        this.IdleAnimation = new AnimatorFromOneImage(
+            this.Idle,
+            11, 16,
+            48, 48,
+            8, 
+            .1,
+            8, 
+            true
+        )
+
         this.animation.scale = this.scale;
+        this.IdleAnimation.scale = this.scale;
+
         this.updateBB();
     }
 
@@ -35,12 +49,12 @@ class Frog {
     }   
 
     draw(ctx) {
-        if (this.spritesheet) {
+        if (this.Idle) {
             if (this.damageCooldown > 0) {
                 ctx.globalAlpha = 0.5; 
             }
             
-            this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+            this.IdleAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
             
             ctx.globalAlpha = 1.0; 
         }

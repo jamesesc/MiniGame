@@ -35,6 +35,13 @@ ASSET_MANAGER.queueDownload("./Assets/Mobs/Bee/Bee-Hit.png");
 // Frog
 ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/Green-Frog.png");
 
+// Frog Improve
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Attack.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Explosion.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Hop.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Hurt.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Idle.png");
+
 
 // Mushroom
 ASSET_MANAGER.queueDownload("./Assets/Mobs/Mushroom/Mushroom-Idle.png");
