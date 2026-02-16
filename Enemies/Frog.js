@@ -196,9 +196,14 @@ class Frog {
         } else if (this.agro && player && player.BB) {
             // Check if player is in attack zone
             if (this.attackZone.collide(player.BB)) {
+                this.attackSequenceState = 1; 
+            
+
 
                 console.log("ATTACK MODE")
 
+            } else {
+            this.attackSequenceState = 0; // Not attacking
             }
             
             // Check if player leaves detection zone
@@ -218,8 +223,12 @@ class Frog {
                 ctx.globalAlpha = 0.5; 
             }
             
-            this.IdleAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
-            
+            // Choose animation based on state
+            if (this.attackSequenceState === 1) {
+                this.AttackNoTongue.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+            } else {
+                this.IdleAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+            }            
             ctx.globalAlpha = 1.0; 
         }
 
