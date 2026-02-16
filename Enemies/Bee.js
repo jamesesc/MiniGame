@@ -130,13 +130,13 @@ class Bee {
                 });
             }
 
-            if (this.y > 2000 || this.x < 0 || this.x > 10000) { 
+            if (this.y > 2000) { 
                 this.charging = false;
                 this.attackCooldown = 1;
             }
         } 
         else if (this.aggro && player && player.BB) {
-            if (this.attackCooldown <= 0 && this.attackZone.collide(player.BB)) {
+            if (this.attackCooldown <= 0 &&  !this.charging && this.attackZone.collide(player.BB)) {
                 this.charging = true;
                 this.animationAttack.elapsedTime = 0; 
                 
@@ -146,7 +146,6 @@ class Bee {
                 let dx = playerCenterX - centerX;
                 let dy = playerBottomY - centerY;
                 let dist = Math.hypot(dx, dy);
-
                 if (dist > 0) {
                     this.chargeDirection.x = dx / dist;
                     this.chargeDirection.y = dy / dist;
