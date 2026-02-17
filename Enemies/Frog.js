@@ -26,6 +26,10 @@ class Frog {
         this.tongueLength = 0; // Current tongue extension
         this.maxTongueLength = 300; // Max pixels the tongue can extend
         this.tongueAngle = 0; // Angle towards player
+        this.attackCooldown = 0; // Cooldown between attacks
+        this.stunned = false; // Whether frog is stunned from taking damage
+        this.dying = false; // Whether frog is playing death explosion
+        this.explosionTimer = 0; // Tracks explosion animation duration
 
         this.groundY = y; // Ground Position
 
@@ -153,9 +157,9 @@ class Frog {
             11, 16,
             47, 48,
             9, 
-            .1,
+            .15,
             9, 
-            true
+            false  // Non-looping - plays once then holds last frame
         )
 
                 
@@ -189,12 +193,49 @@ class Frog {
     }
 
    update() {
+    // Handle death explosion first - skip all other logic
+    if (this.dying) {
+        const explosionDuration = this.ExplosionAnimation.frameCount * this.ExplosionAnimation.frameDuration;
+        this.explosionTimer += this.game.clockTick;
+        if (this.explosionTimer >= explosionDuration) {
+            this.removeFromWorld = true;
+        }
+        return;
+    }
+
+     if (this.game.keys["k"] || this.game.keys["K"]) {
+        this.health = 0; // Setting health to 0 triggers the death logic below
+    }
+
+    
+
+    // Check if frog just died
+    if (this.health <= 0) {
+        this.dying = true;
+        this.explosionTimer = 0;
+        this.ExplosionAnimation.elapsedTime = 0;
+        // Clear all attack state
+        this.attackSequenceState = 0;
+        this.tongueAnimPhase = 0;
+        this.tongueLength = 0;
+        this.tongueBB = null;
+        this.BB = null;
+        return;
+    }
+
     if (this.damageCooldown > 0) {
         this.damageCooldown -= this.game.clockTick;
+        if (this.damageCooldown <= 0) {
+            this.stunned = false; // Remove stun when damage cooldown ends
+        }
     }
 
     if (this.hopCooldown > 0) {
         this.hopCooldown -= this.game.clockTick;
+    }
+
+    if (this.attackCooldown > 0) {
+        this.attackCooldown -= this.game.clockTick;
     }
 
     const centerX = this.x + (this.width * this.scale) / 2;
@@ -219,11 +260,11 @@ class Frog {
         const playerCenterX = player.BB.x + (player.BB.width / 2);
          this.facingRight = playerCenterX > centerX;
 
-        // If currently attacking, don't hop
-        if (this.attackSequenceState === 0) {
+        // Only allow new actions if not currently attacking and not stunned
+        if (this.attackSequenceState === 0 && !this.stunned) {
             // Check if in attack zone
             if (this.attackZone.collide(player.BB)) {
-                if (!this.hopping) {
+                if (!this.hopping && this.attackCooldown <= 0) {
                     // Start attack
                     this.attackSequenceState = 1;
                     this.AttackNoTongue.elapsedTime = 0;
@@ -266,91 +307,84 @@ class Frog {
                 }
             }
         }
-                
-        // Attack sequence logic
-        if (this.attackSequenceState === 1) {
-            if (!this.attackStartTime) {
-                this.attackStartTime = this.game.timer.gameTime;
-            }
-            
-            const timeSinceAttackStart = this.game.timer.gameTime - this.attackStartTime;
-            
-            if (timeSinceAttackStart >= 0.6) {
-                this.attackSequenceState = 2;
-                this.tongueAnimPhase = 1;
-                this.tonguePhaseTimer = 0;
-                this.attackStartTime = null;
-                console.log("Tongue1 phase starting");
-            }
-        }
+    }
 
-        // Tongue animation phases
-        if (this.attackSequenceState === 2) {
-            this.tonguePhaseTimer += this.game.clockTick;
-            
-            if (this.tongueAnimPhase === 1 && this.tonguePhaseTimer >= 0.2) {
-                this.tongueAnimPhase = 2;
-                this.tonguePhaseTimer = 0;
-                this.tongueLength = 0;
-                console.log("Tongue2 stretch phase");
-            }
-            
-            if (this.tongueAnimPhase === 2) {
-                this.tongueLength += 600 * this.game.clockTick;
-                if (this.tongueLength >= this.maxTongueLength) {
-                    this.tongueLength = this.maxTongueLength;
-                    
-                    if (!this.tongueHoldTimer) {
-                        this.tongueHoldTimer = 0.3;
-                    }
-                    this.tongueHoldTimer -= this.game.clockTick;
-                    
-                    if (this.tongueHoldTimer <= 0) {
-                        this.tongueAnimPhase = 3;
-                        this.tongueHoldTimer = null;
-                        this.tonguePhaseTimer = 0;
-                        console.log("Tongue3 retract phase");
-                    }
-                }
-            }
-            
-            if (this.tongueAnimPhase === 3) {
-                this.tongueLength -= 800 * this.game.clockTick;
-                if (this.tongueLength <= 0) {
-                    this.tongueLength = 0;
-                    this.attackSequenceState = 0;
-                    this.tongueAnimPhase = 0;
-                    this.AttackNoTongue.elapsedTime = 0;
-                }
-            }
-        }
-
-        // UPDATE TONGUE HITBOX
-        if (this.tongueAnimPhase === 2 || this.tongueAnimPhase === 3) {
-            this.updateTongueBB();
-            
-            if (player && player.BB && this.tongueBB && this.tongueBB.collide(player.BB)) {
-                if (typeof player.takeDamage === 'function') {
-                    player.takeDamage(20);
-                }
-            }
-        } else {
-            this.tongueBB = null;
+    // Attack sequence logic - ALWAYS runs regardless of agro or player position
+    if (this.attackSequenceState === 1) {
+        if (!this.attackStartTime) {
+            this.attackStartTime = this.game.timer.gameTime;
         }
         
-        // Check if player leaves detection zone
-        if (!this.detectionZone.collide(player.BB)) {
-            this.agro = false;
-            this.attackSequenceState = 0;
-            this.tongueAnimPhase = 0;
-            this.tongueLength = 0;
-            this.tongueBB = null;
-            this.attackStartTime = null;
-            this.tongueHoldTimer = null;
+        const timeSinceAttackStart = this.game.timer.gameTime - this.attackStartTime;
+        
+        if (timeSinceAttackStart >= 0.6) {
+            this.attackSequenceState = 2;
+            this.tongueAnimPhase = 1;
             this.tonguePhaseTimer = 0;
-            
-            // Reset animations
-            this.AttackNoTongue.elapsedTime = 0;
+            this.attackStartTime = null;
+            console.log("Tongue1 phase starting");
+        }
+    }
+
+    // Tongue animation phases - ALWAYS runs regardless of agro or player position
+    if (this.attackSequenceState === 2) {
+        this.tonguePhaseTimer += this.game.clockTick;
+        
+        if (this.tongueAnimPhase === 1 && this.tonguePhaseTimer >= 0.2) {
+            this.tongueAnimPhase = 2;
+            this.tonguePhaseTimer = 0;
+            this.tongueLength = 0;
+            console.log("Tongue2 stretch phase");
+        }
+        
+        if (this.tongueAnimPhase === 2) {
+            this.tongueLength += 600 * this.game.clockTick;
+            if (this.tongueLength >= this.maxTongueLength) {
+                this.tongueLength = this.maxTongueLength;
+                
+                if (!this.tongueHoldTimer) {
+                    this.tongueHoldTimer = 0.3;
+                }
+                this.tongueHoldTimer -= this.game.clockTick;
+                
+                if (this.tongueHoldTimer <= 0) {
+                    this.tongueAnimPhase = 3;
+                    this.tongueHoldTimer = null;
+                    this.tonguePhaseTimer = 0;
+                    console.log("Tongue3 retract phase");
+                }
+            }
+        }
+        
+        if (this.tongueAnimPhase === 3) {
+            this.tongueLength -= 800 * this.game.clockTick;
+            if (this.tongueLength <= 0) {
+                this.tongueLength = 0;
+                this.attackSequenceState = 0;
+                this.tongueAnimPhase = 0;
+                this.AttackNoTongue.elapsedTime = 0;
+                this.attackCooldown = 2.0; // 2 second cooldown between attacks
+            }
+        }
+    }
+
+    // UPDATE TONGUE HITBOX - ALWAYS check regardless of agro
+    if (this.tongueAnimPhase === 2 || this.tongueAnimPhase === 3) {
+        this.updateTongueBB();
+        
+        if (player && player.BB && this.tongueBB && this.tongueBB.collide(player.BB)) {
+            if (typeof player.takeDamage === 'function') {
+                player.takeDamage(20);
+            }
+        }
+    } else {
+        this.tongueBB = null;
+    }
+
+    // Only reset agro if player leaves detection zone AND not attacking
+    if (this.agro && player && player.BB) {
+        if (!this.detectionZone.collide(player.BB) && this.attackSequenceState === 0) {
+            this.agro = false;
         }
     }
 
@@ -379,27 +413,43 @@ class Frog {
 }
 
     draw(ctx) {
+        // Don't draw anything if dead or dying (explosion only)
+        if (this.health <= 0 && !this.dying) return;
+
+        // Draw explosion when dying, then stop
+        if (this.dying) {
+            ctx.save();
+            if (!this.facingRight) {
+                ctx.translate(this.x + (this.width * this.scale), this.y);
+                ctx.scale(-1, 1);
+                ctx.translate(-this.x, -this.y);
+            }
+            this.ExplosionAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+            ctx.restore();
+            return;
+        }
+
         if (this.Hop) {
+            ctx.save();
+
+            // Set alpha INSIDE save so restore will undo it
             if (this.damageCooldown > 0) {
                 ctx.globalAlpha = 0.5; 
             }
-
-            ctx.save();
 
             if (!this.facingRight) {
                 ctx.translate(this.x + (this.width * this.scale), this.y);
                 ctx.scale(-1, 1);
                 ctx.translate(-this.x, -this.y);
             }
-        
 
-            
             // Choose animation based on state
-            if (this.attackSequenceState === 1) {
+            if (this.damageCooldown > 0) {
+                this.HurtAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+            } else if (this.attackSequenceState === 1) {
                 this.AttackNoTongue.drawFrame(this.game.clockTick, ctx, this.x, this.y);
             } else if (this.attackSequenceState === 2) {
-                const lastFrame = this.AttackNoTongue.frameCount - 1; // Last frame index
-                
+                const lastFrame = this.AttackNoTongue.frameCount - 1;
                 ctx.drawImage(
                     this.AttackNoTongue.spritesheet,
                     this.AttackNoTongue.xStart + (lastFrame * this.AttackNoTongue.width),
@@ -412,22 +462,17 @@ class Frog {
                     this.AttackNoTongue.height * this.AttackNoTongue.scale
                 );
             } else if (this.hopping) {
-            // Show hop animation when hopping
-            this.HopAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
-            } 
-            else {
+                this.HopAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+            } else {
                 this.IdleAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
             }
 
-            // Draw tongue during phase 2
-            if (this.attackSequenceState === 2) {
-                ctx.restore(); // Restore before drawing tongue
-                this.drawTongue(ctx);
-                ctx.save(); // Save again for the final restore
+            ctx.restore(); // Restores alpha AND transform cleanly
 
+            // Draw tongue outside save/restore so it uses its own clean context
+            if (this.attackSequenceState === 2) {
+                this.drawTongue(ctx);
             }
-            
-            ctx.globalAlpha = 1.0; 
         }
 
             this.drawHealthBar(ctx);
@@ -469,8 +514,6 @@ class Frog {
             ctx.stroke();
         }
 
-        ctx.restore(); // ADD THIS
-
     }
 
 
@@ -504,8 +547,33 @@ class Frog {
     takeDamage(amount) {
         if (this.damageCooldown <= 0) {
             this.health -= amount;
-            this.damageCooldown = 0.5; 
-            this.x += 50; 
+            
+            // If lethal, trigger dying immediately so no body flash occurs
+            if (this.health <= 0) {
+                this.health = 0;
+                this.dying = true;
+                this.explosionTimer = 0;
+                this.ExplosionAnimation.elapsedTime = 0;
+                this.attackSequenceState = 0;
+                this.tongueAnimPhase = 0;
+                this.tongueLength = 0;
+                this.tongueBB = null;
+                this.BB = null;
+                return;
+            }
+
+            this.damageCooldown = 1.0;
+            this.stunned = true;
+            
+            // Cancel any ongoing attack
+            this.attackSequenceState = 0;
+            this.tongueAnimPhase = 0;
+            this.tongueLength = 0;
+            this.tongueBB = null;
+            this.attackStartTime = null;
+            this.tongueHoldTimer = null;
+            this.tonguePhaseTimer = 0;
+            this.AttackNoTongue.elapsedTime = 0;
         }
     }
 
