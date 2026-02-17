@@ -41,6 +41,11 @@ ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Expl
 ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Hop.png");
 ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Hurt.png");
 ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Idle.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/Frog Tongue.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_AttackNoTongue.png");
+
+
+
 
 
 // Mushroom

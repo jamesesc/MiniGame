@@ -36,6 +36,10 @@ class Bee {
         this.stuckTimer = 0;
         this.attackCooldown = 0;
 
+        this.dying = false;
+        this.deathTimer = 0;
+        this.splatParticles = [];
+
         this.BeeFly = ASSET_MANAGER.getAsset("./Assets/Mobs/Bee/Bee-Fly.png");
         this.BeeAttack = ASSET_MANAGER.getAsset("./Assets/Mobs/Bee/Bee-Attack.png");
         this.BeeHit = ASSET_MANAGER.getAsset("./Assets/Mobs/Bee/Bee-Hit.png");
@@ -80,6 +84,30 @@ class Bee {
     }
 
     update() {
+        if (this.dying) {
+            this.deathTimer += this.game.clockTick;
+            this.splatParticles.forEach(p => {
+                p.x += p.vx * this.game.clockTick;
+                p.y += p.vy * this.game.clockTick;
+                p.radius *= 0.95; 
+                p.alpha -= 0.02; 
+            });
+            if (this.deathTimer > 1.0) this.removeFromWorld = true;
+            return; 
+        }
+
+        if (this.game.keys["k"] || this.game.keys["K"]) {
+            this.die();
+            return;
+        }
+
+        if (this.health <= 0) {
+            this.die();
+            return;
+        }
+
+
+
         const centerX = this.x + (this.width * this.scale) / 2;
         const centerY = this.y + (this.height * this.scale) / 2;
         this.detectionZone.x = centerX;
@@ -177,6 +205,19 @@ class Bee {
     }
 
     draw(ctx) {
+        if (this.dying) {
+            ctx.save();
+            this.splatParticles.forEach(p => {
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.restore();
+            return;
+        }
+
         if (this.BeeFly && this.BeeAttack && this.BeeHit) {        
             if (this.damageCooldown > 0) {
                 ctx.globalAlpha = 0.5;
@@ -251,6 +292,30 @@ class Bee {
                 const direction = this.x > player.x ? 1 : -1;
                 this.x += direction * 50;
             }
+        }
+    }
+
+
+    die() {
+        this.dying = true;
+        this.BB = null;
+        
+        // Create "Goo" splatter particles
+        const particleCount = 15;
+        const colors = ["#FFD700", "#000000", "#FFFFFF"]; // Yellow, Black, White
+        
+        for (let i = 0; i < particleCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 100 + Math.random() * 300;
+            this.splatParticles.push({
+                x: this.x + (this.width * this.scale) / 2,
+                y: this.y + (this.height * this.scale) / 2,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                radius: 10 + Math.random() * 20,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                alpha: 1.0
+            });
         }
     }
 }

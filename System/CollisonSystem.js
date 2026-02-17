@@ -27,28 +27,21 @@ class CollisionSystem {
                     entities.splice(i, 1); 
             }
         
-    
+            if (entity instanceof Frog || entity instanceof Mushroom || entity instanceof Bee) { 
+                // Skip if entity is already dying - let it finish its death animation
+                if (entity.dying) continue;
 
-
-
-    if (entity instanceof Frog || entity instanceof Mushroom || entity instanceof Bee) { 
                 if (otter.BB && entity.BB && otter.BB.collide(entity.BB)) {
-                
                     if (otter.action === "spin") {
                         if (entity.takeDamage) {
-                            entity.takeDamage(25); // Deal 25 damage
-                            if (entity.health <= 0) {
-                                entities.splice(i, 1);
-                            } else {
-                                otter.takeDamage(5); 
-                            }
+                            entity.takeDamage(25);
                         }
-
-                        if (entity.health <= 0) {
-                            entities.splice(i, 1); // Remove from game
-                            console.log("Enemy Defeated!");
-                        }
-                    } 
+                        // Don't splice here - the entity sets removeFromWorld itself
+                        // when its death animation finishes
+                    } else {
+                        // Player walks into enemy and isn't spinning - take damage
+                        otter.takeDamage(5); 
+                    }
                 }
             }
         }
