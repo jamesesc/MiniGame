@@ -8,7 +8,7 @@ class Frog {
         this.x = x; 
         this.y = y;
 
-
+        this.facingRight = true; // Default facing direction
         this.hopping = false;
         this.hopCooldown = 0;
         this.hopDuration = 0.5; 
@@ -211,10 +211,14 @@ class Frog {
         if (this.detectionZone.collide(player.BB)) {
             this.agro = true;
             this.detected = true;
+            const playerCenterX = player.BB.x + (player.BB.width / 2);
+            this.facingRight = playerCenterX > centerX;
             console.log("PLAYER IS DETECTED")
         }
     } else if (this.agro && player && player.BB) {
-        
+        const playerCenterX = player.BB.x + (player.BB.width / 2);
+         this.facingRight = playerCenterX > centerX;
+
         // If currently attacking, don't hop
         if (this.attackSequenceState === 0) {
             // Check if in attack zone
@@ -226,7 +230,7 @@ class Frog {
                 
                     const playerCenterX = player.BB.x + (player.BB.width / 2);
                     const playerCenterY = player.BB.y + (player.BB.height / 2);
-                    const frogMouthX = this.x + (this.width * this.scale) / 2 + 55;
+                    const frogMouthX = this.x + (this.width * this.scale) / 2 + (this.facingRight ? 55 : -55);
                     const frogMouthY = this.y + (this.height * this.scale) / 2;
                     
                     this.tongueAngle = Math.atan2(playerCenterY - frogMouthY, playerCenterX - frogMouthX);
@@ -337,8 +341,6 @@ class Frog {
         // Check if player leaves detection zone
         if (!this.detectionZone.collide(player.BB)) {
             this.agro = false;
-            // REMOVED: this.hopping = false;  <-- DON'T STOP THE HOP!
-
             this.attackSequenceState = 0;
             this.tongueAnimPhase = 0;
             this.tongueLength = 0;
@@ -381,6 +383,16 @@ class Frog {
             if (this.damageCooldown > 0) {
                 ctx.globalAlpha = 0.5; 
             }
+
+            ctx.save();
+
+            if (!this.facingRight) {
+                ctx.translate(this.x + (this.width * this.scale), this.y);
+                ctx.scale(-1, 1);
+                ctx.translate(-this.x, -this.y);
+            }
+        
+
             
             // Choose animation based on state
             if (this.attackSequenceState === 1) {
@@ -409,7 +421,10 @@ class Frog {
 
             // Draw tongue during phase 2
             if (this.attackSequenceState === 2) {
+                ctx.restore(); // Restore before drawing tongue
                 this.drawTongue(ctx);
+                ctx.save(); // Save again for the final restore
+
             }
             
             ctx.globalAlpha = 1.0; 
@@ -453,6 +468,9 @@ class Frog {
             ctx.arc(this.x, this.y, this.attackRadius, 0, Math.PI * 2);
             ctx.stroke();
         }
+
+        ctx.restore(); // ADD THIS
+
     }
 
 
@@ -492,7 +510,7 @@ class Frog {
     }
 
     drawTongue(ctx) {
-        const frogMouthX = this.x + (this.width * this.scale) / 2 + 55;
+        const frogMouthX = this.x + (this.width * this.scale) / 2 + (this.facingRight ? 55 : -55);
         const frogMouthY = this.y + (this.height * this.scale) / 2;
         
         const segmentWidth = 20 * this.scale;  
@@ -558,7 +576,7 @@ class Frog {
             return;
         }
         
-        const frogMouthX = this.x + (this.width * this.scale) / 2 + 55;
+        const frogMouthX = this.x + (this.width * this.scale) / 2 + (this.facingRight ? 55 : -55);
         const frogMouthY = this.y + (this.height * this.scale) / 2;
         
         const tongueWidth = this.tongueLength;
