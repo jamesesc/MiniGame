@@ -285,6 +285,21 @@ class Frog {
         }
     }
 
+    // UPDATE TONGUE HITBOX during phase 2 and 3
+            if (this.tongueAnimPhase === 2 || this.tongueAnimPhase === 3) {
+                this.updateTongueBB();
+                
+                // Check collision with player
+                if (player && player.BB && this.tongueBB && this.tongueBB.collide(player.BB)) {
+                    if (typeof player.takeDamage === 'function') {
+                        player.takeDamage(20); // Tongue damage
+                    }
+                }
+            } else {
+                this.tongueBB = null; // No tongue hitbox when not attacking
+            }
+        
+
         this.updateBB();
         }
    }
@@ -328,6 +343,19 @@ class Frog {
 
 
         if (this.game.options.debugging) {
+            // --- Draw Tongue Hitbox (Rotated Rectangle) ---
+                    if (this.tongueBB) {
+                        ctx.save();
+                        ctx.translate(this.tongueBB.x, this.tongueBB.y);
+                        ctx.rotate(this.tongueBB.angle);
+                        
+                        ctx.strokeStyle = "Purple";
+                        ctx.lineWidth = 7;
+                        ctx.strokeRect(0, -this.tongueBB.height / 2, this.tongueBB.width, this.tongueBB.height);
+                        
+                        ctx.restore();
+                    }
+
             // --- Draw Bounding Box (Existing) ---
             ctx.strokeStyle = "Red";
             ctx.lineWidth = 5;
@@ -445,5 +473,51 @@ class Frog {
             ctx.lineTo(targetX, targetY);
             ctx.stroke();
         }
+    }
+
+
+    updateTongueBB() {
+        if (this.tongueLength <= 0) {
+            this.tongueBB = null;
+            return;
+        }
+        
+        const frogMouthX = this.x + (this.width * this.scale) / 2 + 55;
+        const frogMouthY = this.y + (this.height * this.scale) / 2;
+        
+        const tongueWidth = this.tongueLength;
+        const tongueHeight = 10 * this.scale;
+        
+        // Store rotated rectangle data
+        this.tongueBB = {
+            x: frogMouthX,
+            y: frogMouthY,
+            width: tongueWidth,
+            height: tongueHeight,
+            angle: this.tongueAngle,
+            
+            // Collision check with rotated rectangle
+            collide: function(otherBB) {
+                // Get the center of the other bounding box
+                const otherCenterX = otherBB.x + otherBB.width / 2;
+                const otherCenterY = otherBB.y + otherBB.height / 2;
+                
+                // Translate to tongue's coordinate system (inverse rotation)
+                const dx = otherCenterX - this.x;
+                const dy = otherCenterY - this.y;
+                const cos = Math.cos(-this.angle);
+                const sin = Math.sin(-this.angle);
+                const localX = dx * cos - dy * sin;
+                const localY = dx * sin + dy * cos;
+                
+                // Check if point is inside the rectangle (0, 0) to (width, height)
+                // Add some margin for the other BB's size
+                const margin = Math.max(otherBB.width, otherBB.height) / 2;
+                return localX >= -margin && 
+                    localX <= this.width + margin && 
+                    localY >= -this.height / 2 - margin && 
+                    localY <= this.height / 2 + margin;
+            }
+        };
     }
 }
