@@ -27,6 +27,9 @@ class Frog {
         this.maxTongueLength = 300; // Max pixels the tongue can extend
         this.tongueAngle = 0; // Angle towards player
 
+        this.groundY = y; // Ground Position
+
+
 
         
         // Good: x, 2000, y 1040 TESTING
@@ -216,25 +219,26 @@ class Frog {
         if (this.attackSequenceState === 0) {
             // Check if in attack zone
             if (this.attackZone.collide(player.BB)) {
-                // Start attack
-                this.attackSequenceState = 1;
-                this.AttackNoTongue.elapsedTime = 0;
-                this.hopping = false; // Stop hopping when attacking
-            
-                const playerCenterX = player.BB.x + (player.BB.width / 2);
-                const playerCenterY = player.BB.y + (player.BB.height / 2);
-                const frogMouthX = this.x + (this.width * this.scale) / 2 + 55;
-                const frogMouthY = this.y + (this.height * this.scale) / 2;
+                if (!this.hopping) {
+                    // Start attack
+                    this.attackSequenceState = 1;
+                    this.AttackNoTongue.elapsedTime = 0;
                 
-                this.tongueAngle = Math.atan2(playerCenterY - frogMouthY, playerCenterX - frogMouthX);
-                const dx = playerCenterX - frogMouthX;
-                const dy = playerCenterY - frogMouthY;
-                const distanceToPlayer = Math.hypot(dx, dy);
-                this.maxTongueLength = Math.min(distanceToPlayer, 400);
-                
-                console.log("Distance to player:", distanceToPlayer, "Capped at:", this.maxTongueLength);
+                    const playerCenterX = player.BB.x + (player.BB.width / 2);
+                    const playerCenterY = player.BB.y + (player.BB.height / 2);
+                    const frogMouthX = this.x + (this.width * this.scale) / 2 + 55;
+                    const frogMouthY = this.y + (this.height * this.scale) / 2;
+                    
+                    this.tongueAngle = Math.atan2(playerCenterY - frogMouthY, playerCenterX - frogMouthX);
+                    const dx = playerCenterX - frogMouthX;
+                    const dy = playerCenterY - frogMouthY;
+                    const distanceToPlayer = Math.hypot(dx, dy);
+                    this.maxTongueLength = Math.min(distanceToPlayer, 400);
+                    
+                    console.log("Distance to player:", distanceToPlayer, "Capped at:", this.maxTongueLength);
+                }
             } else {
-                // Not in attack zone, hop towards player
+                // Not in attack zone, start new hops towards player
                 if (!this.hopping && this.hopCooldown <= 0) {
                     // Start a new hop
                     this.hopping = true;
@@ -249,36 +253,16 @@ class Frog {
                     const dy = playerCenterY - centerY;
                     const dist = Math.hypot(dx, dy);
                     
-                    // Hop 150 pixels towards player
+                    // Hop 300 pixels towards player
                     const hopDistance = 300;
                     this.hopTargetX = this.x + (dx / dist) * hopDistance;
                     this.hopTargetY = this.y + (dy / dist) * hopDistance;
                     
                     this.HopAnimation.elapsedTime = 0; // Reset hop animation
                 }
-                
-                // Execute hop movement
-                if (this.hopping) {
-                    this.hopTimer += this.game.clockTick;
-                    const progress = Math.min(this.hopTimer / this.hopDuration, 1);
-                    
-                    // Linear X movement
-                    this.x = this.hopStartX + (this.hopTargetX - this.hopStartX) * progress;
-                    
-                    // Parabolic Y movement (creates an arc)
-                    const hopHeight = 150; // Adjust this value for higher/lower jumps
-                    const arc = Math.sin(progress * Math.PI); // Creates a smooth arc (0 -> 1 -> 0)
-                    this.y = this.hopStartY + (this.hopTargetY - this.hopStartY) * progress - (arc * hopHeight);
-                    
-                    // End hop
-                    if (progress >= 1) {
-                        this.hopping = false;
-                        this.hopCooldown = 0.5; // Wait 0.5s before next hop
-                    }
-                }
             }
         }
-        
+                
         // Attack sequence logic
         if (this.attackSequenceState === 1) {
             if (!this.attackStartTime) {
@@ -353,7 +337,39 @@ class Frog {
         // Check if player leaves detection zone
         if (!this.detectionZone.collide(player.BB)) {
             this.agro = false;
+            // REMOVED: this.hopping = false;  <-- DON'T STOP THE HOP!
+
+            this.attackSequenceState = 0;
+            this.tongueAnimPhase = 0;
+            this.tongueLength = 0;
+            this.tongueBB = null;
+            this.attackStartTime = null;
+            this.tongueHoldTimer = null;
+            this.tonguePhaseTimer = 0;
+            
+            // Reset animations
+            this.AttackNoTongue.elapsedTime = 0;
+        }
+    }
+
+    // This allows hops to complete naturally
+    if (this.hopping) {
+        this.hopTimer += this.game.clockTick;
+        const progress = Math.min(this.hopTimer / this.hopDuration, 1);
+        
+        // Linear X movement
+        this.x = this.hopStartX + (this.hopTargetX - this.hopStartX) * progress;
+        
+        // Parabolic Y movement (creates an arc)
+        const hopHeight = 150;
+        const arc = Math.sin(progress * Math.PI);
+        this.y = this.hopStartY + (this.hopTargetY - this.hopStartY) * progress - (arc * hopHeight);
+        
+        // End hop
+        if (progress >= 1) {
             this.hopping = false;
+            this.hopCooldown = 0.5;
+            this.y = this.groundY; 
         }
     }
 
