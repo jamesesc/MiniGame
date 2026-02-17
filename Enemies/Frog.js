@@ -9,6 +9,16 @@ class Frog {
         this.y = y;
 
 
+        this.hopping = false;
+        this.hopCooldown = 0;
+        this.hopDuration = 0.5; 
+        this.hopTimer = 0;
+        this.hopStartX = 0;
+        this.hopStartY = 0;
+        this.hopTargetX = 0;
+        this.hopTargetY = 0;
+
+
 
         this.agro = false;
         this.detected = false;
@@ -180,6 +190,10 @@ class Frog {
         this.damageCooldown -= this.game.clockTick;
     }
 
+    if (this.hopCooldown > 0) {
+        this.hopCooldown -= this.game.clockTick;
+    }
+
     const centerX = this.x + (this.width * this.scale) / 2;
     const centerY = this.y + (this.height * this.scale) / 2;
     this.detectionZone.x = centerX;
@@ -191,18 +205,21 @@ class Frog {
 
     // Detection logic
     if (!this.agro && player && player.BB) {
-        // Checking if the player enters the detection zone
         if (this.detectionZone.collide(player.BB)) {
             this.agro = true;
             this.detected = true;
             console.log("PLAYER IS DETECTED")
         }
     } else if (this.agro && player && player.BB) {
-        // Checking player is in attack zone
-        if (this.attackZone.collide(player.BB)) {
-            if (this.attackSequenceState === 0) {
+        
+        // If currently attacking, don't hop
+        if (this.attackSequenceState === 0) {
+            // Check if in attack zone
+            if (this.attackZone.collide(player.BB)) {
+                // Start attack
                 this.attackSequenceState = 1;
-                this.AttackNoTongue.elapsedTime = 0; // Reset animation
+                this.AttackNoTongue.elapsedTime = 0;
+                this.hopping = false; // Stop hopping when attacking
             
                 const playerCenterX = player.BB.x + (player.BB.width / 2);
                 const playerCenterY = player.BB.y + (player.BB.height / 2);
@@ -213,96 +230,135 @@ class Frog {
                 const dx = playerCenterX - frogMouthX;
                 const dy = playerCenterY - frogMouthY;
                 const distanceToPlayer = Math.hypot(dx, dy);
-                this.maxTongueLength = Math.min(distanceToPlayer, 400); // Cap at 400
+                this.maxTongueLength = Math.min(distanceToPlayer, 400);
                 
                 console.log("Distance to player:", distanceToPlayer, "Capped at:", this.maxTongueLength);
-            }
-
-            console.log("ATTACK MODE")
-        } else {
-            if (this.attackSequenceState === 0) {
-                this.attackSequenceState = 0; // Stay idle
-            }
-        }
-        
-       if (this.attackSequenceState === 1) {
-        if (!this.attackStartTime) {
-            this.attackStartTime = this.game.timer.gameTime;
-        }
-        
-        const timeSinceAttackStart = this.game.timer.gameTime - this.attackStartTime;
-        
-        if (timeSinceAttackStart >= 0.6) {
-            this.attackSequenceState = 2; // Move to Tongue1 animation
-            this.tongueAnimPhase = 1; // Start with tongue1
-            this.tonguePhaseTimer = 0;
-            this.attackStartTime = null;
-            console.log("Tongue1 phase starting");
-        }
-    }
-
-    // Tongue animation phases
-    if (this.attackSequenceState === 2) {
-        this.tonguePhaseTimer += this.game.clockTick;
-        
-        // Phase 1 - Show Tongue1 for 0.2 seconds
-        if (this.tongueAnimPhase === 1 && this.tonguePhaseTimer >= 0.2) {
-            this.tongueAnimPhase = 2;
-            this.tonguePhaseTimer = 0;
-            this.tongueLength = 0;
-            console.log("Tongue2 stretch phase");
-        }
-        
-        // Phase 2 - Tongue2 stretches out
-        if (this.tongueAnimPhase === 2) {
-            this.tongueLength += 600 * this.game.clockTick;
-            if (this.tongueLength >= this.maxTongueLength) {
-                this.tongueLength = this.maxTongueLength;
-                
-                if (!this.tongueHoldTimer) {
-                    this.tongueHoldTimer = 0.3;
+            } else {
+                // Not in attack zone, hop towards player
+                if (!this.hopping && this.hopCooldown <= 0) {
+                    // Start a new hop
+                    this.hopping = true;
+                    this.hopTimer = 0;
+                    this.hopStartX = this.x;
+                    this.hopStartY = this.y;
+                    
+                    // Calculate hop direction towards player
+                    const playerCenterX = player.BB.x + (player.BB.width / 2);
+                    const playerCenterY = player.BB.y + (player.BB.height / 2);
+                    const dx = playerCenterX - centerX;
+                    const dy = playerCenterY - centerY;
+                    const dist = Math.hypot(dx, dy);
+                    
+                    // Hop 150 pixels towards player
+                    const hopDistance = 300;
+                    this.hopTargetX = this.x + (dx / dist) * hopDistance;
+                    this.hopTargetY = this.y + (dy / dist) * hopDistance;
+                    
+                    this.HopAnimation.elapsedTime = 0; // Reset hop animation
                 }
-                this.tongueHoldTimer -= this.game.clockTick;
                 
-                if (this.tongueHoldTimer <= 0) {
-                    this.tongueAnimPhase = 3; 
-                    this.tongueHoldTimer = null;
-                    this.tonguePhaseTimer = 0;
-                    console.log("Tongue3 retract phase");
-                }
-            }
-        }
-        
-        // Phase 3 - Show Tongue3 and retract
-        if (this.tongueAnimPhase === 3) {
-            this.tongueLength -= 800 * this.game.clockTick;
-            if (this.tongueLength <= 0) {
-                this.tongueLength = 0;
-                this.attackSequenceState = 0; // Back to idle
-                this.tongueAnimPhase = 0;
-                this.AttackNoTongue.elapsedTime = 0;
-            }
-        }
-    }
-
-    // UPDATE TONGUE HITBOX during phase 2 and 3
-            if (this.tongueAnimPhase === 2 || this.tongueAnimPhase === 3) {
-                this.updateTongueBB();
-                
-                // Check collision with player
-                if (player && player.BB && this.tongueBB && this.tongueBB.collide(player.BB)) {
-                    if (typeof player.takeDamage === 'function') {
-                        player.takeDamage(20); // Tongue damage
+                // Execute hop movement
+                if (this.hopping) {
+                    this.hopTimer += this.game.clockTick;
+                    const progress = Math.min(this.hopTimer / this.hopDuration, 1);
+                    
+                    // Linear X movement
+                    this.x = this.hopStartX + (this.hopTargetX - this.hopStartX) * progress;
+                    
+                    // Parabolic Y movement (creates an arc)
+                    const hopHeight = 150; // Adjust this value for higher/lower jumps
+                    const arc = Math.sin(progress * Math.PI); // Creates a smooth arc (0 -> 1 -> 0)
+                    this.y = this.hopStartY + (this.hopTargetY - this.hopStartY) * progress - (arc * hopHeight);
+                    
+                    // End hop
+                    if (progress >= 1) {
+                        this.hopping = false;
+                        this.hopCooldown = 0.5; // Wait 0.5s before next hop
                     }
                 }
-            } else {
-                this.tongueBB = null; // No tongue hitbox when not attacking
             }
-        
-
-        this.updateBB();
         }
-   }
+        
+        // Attack sequence logic
+        if (this.attackSequenceState === 1) {
+            if (!this.attackStartTime) {
+                this.attackStartTime = this.game.timer.gameTime;
+            }
+            
+            const timeSinceAttackStart = this.game.timer.gameTime - this.attackStartTime;
+            
+            if (timeSinceAttackStart >= 0.6) {
+                this.attackSequenceState = 2;
+                this.tongueAnimPhase = 1;
+                this.tonguePhaseTimer = 0;
+                this.attackStartTime = null;
+                console.log("Tongue1 phase starting");
+            }
+        }
+
+        // Tongue animation phases
+        if (this.attackSequenceState === 2) {
+            this.tonguePhaseTimer += this.game.clockTick;
+            
+            if (this.tongueAnimPhase === 1 && this.tonguePhaseTimer >= 0.2) {
+                this.tongueAnimPhase = 2;
+                this.tonguePhaseTimer = 0;
+                this.tongueLength = 0;
+                console.log("Tongue2 stretch phase");
+            }
+            
+            if (this.tongueAnimPhase === 2) {
+                this.tongueLength += 600 * this.game.clockTick;
+                if (this.tongueLength >= this.maxTongueLength) {
+                    this.tongueLength = this.maxTongueLength;
+                    
+                    if (!this.tongueHoldTimer) {
+                        this.tongueHoldTimer = 0.3;
+                    }
+                    this.tongueHoldTimer -= this.game.clockTick;
+                    
+                    if (this.tongueHoldTimer <= 0) {
+                        this.tongueAnimPhase = 3;
+                        this.tongueHoldTimer = null;
+                        this.tonguePhaseTimer = 0;
+                        console.log("Tongue3 retract phase");
+                    }
+                }
+            }
+            
+            if (this.tongueAnimPhase === 3) {
+                this.tongueLength -= 800 * this.game.clockTick;
+                if (this.tongueLength <= 0) {
+                    this.tongueLength = 0;
+                    this.attackSequenceState = 0;
+                    this.tongueAnimPhase = 0;
+                    this.AttackNoTongue.elapsedTime = 0;
+                }
+            }
+        }
+
+        // UPDATE TONGUE HITBOX
+        if (this.tongueAnimPhase === 2 || this.tongueAnimPhase === 3) {
+            this.updateTongueBB();
+            
+            if (player && player.BB && this.tongueBB && this.tongueBB.collide(player.BB)) {
+                if (typeof player.takeDamage === 'function') {
+                    player.takeDamage(20);
+                }
+            }
+        } else {
+            this.tongueBB = null;
+        }
+        
+        // Check if player leaves detection zone
+        if (!this.detectionZone.collide(player.BB)) {
+            this.agro = false;
+            this.hopping = false;
+        }
+    }
+
+    this.updateBB();
+}
 
     draw(ctx) {
         if (this.Hop) {
@@ -327,7 +383,11 @@ class Frog {
                     this.AttackNoTongue.width * this.AttackNoTongue.scale,
                     this.AttackNoTongue.height * this.AttackNoTongue.scale
                 );
-            } else {
+            } else if (this.hopping) {
+            // Show hop animation when hopping
+            this.HopAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+            } 
+            else {
                 this.IdleAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
             }
 
