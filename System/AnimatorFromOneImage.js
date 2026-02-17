@@ -1,12 +1,10 @@
-/**
- * Animaotr base on sprite that is only one image. 
- */
 class AnimatorFromOneImage {
-    constructor(spritesheet, xStart, yStart, width, height, frameCount, frameDuration, framesPerRow) {
+    constructor(spritesheet, xStart, yStart, width, height, frameCount, frameDuration, framesPerRow, loop = true) {
         Object.assign(this, { 
             spritesheet, xStart, yStart, width, height, 
             frameCount, frameDuration, 
-            framesPerRow: framesPerRow || frameCount 
+            framesPerRow: framesPerRow || frameCount,
+            loop 
         });
 
         this.elapsedTime = 0;
@@ -16,9 +14,23 @@ class AnimatorFromOneImage {
 
     drawFrame(tick, ctx, x, y) {
         this.elapsedTime += tick;
-        if (this.elapsedTime > this.totalTime) this.elapsedTime -= this.totalTime;
 
-        const frame = this.currentFrame();
+        // Only reset time if looping is enabled
+        if (this.loop) {
+            if (this.elapsedTime > this.totalTime) {
+                this.elapsedTime -= this.totalTime;
+            }
+        } else {
+            // If not looping, clamp the time to the very end of the animation
+            if (this.elapsedTime > this.totalTime) {
+                this.elapsedTime = this.totalTime;
+            }
+        }
+
+        let frame = this.currentFrame();
+        
+        // Safety Check - If not looping, make sure we don't try to draw a frame that doesnt exit 
+        if (frame >= this.frameCount) frame = this.frameCount - 1;
 
         const col = frame % this.framesPerRow;
         const row = Math.floor(frame / this.framesPerRow);
