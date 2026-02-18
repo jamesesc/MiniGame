@@ -49,8 +49,12 @@ ASSET_MANAGER.queueDownload("./Assets/Mobs/Frogs/BlueBlue/ToxicFrogBlueBlue_Atta
 
 
 // Mushroom
-ASSET_MANAGER.queueDownload("./Assets/Mobs/Mushroom/Mushroom-Idle.png");
 ASSET_MANAGER.queueDownload("./Assets/Mobs/Mushroom/Mushroom-Attack.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Mushroom/Mushroom-Die.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Mushroom/Mushroom-hit.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Mushroom/Mushroom-Idle.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Mushroom/Mushroom-Run.png");
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Mushroom/Mushroom-Stun.png");
 
 
 // Otter Animation
