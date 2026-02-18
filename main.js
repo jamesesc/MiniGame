@@ -89,6 +89,16 @@ for (let i = 1; i <= 6; i++) {
     ASSET_MANAGER.queueDownload(`./Assets/Otter/Sleep/otter_sleep_${i}.png`);
 }
 
+// Intro background
+for (let i = 1; i <= 8; i++) {
+    ASSET_MANAGER.queueDownload(`./Assets/IntroBackground/${i}.png`);
+}
+
+    ASSET_MANAGER.queueDownload(`./Assets/IntroBackground/Foreground.png`);
+
+
+
+
 /**
  * Method to handle every entity in the game.
  */

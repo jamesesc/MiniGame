@@ -25,10 +25,14 @@ export class SceneManager {
     }
 
     loadLevel() {
-        this.game.addEntity(new ParallaxLayer(this.game, "./Assets/Background/5-SkyBackground.png", .1, -1500, 11));
-        this.game.addEntity(new ParallaxLayer(this.game, "./Assets/Background/4-TreesBackground.png", 0.1, 100, 4));
+        this.game.addEntity(new ParallaxLayer(this.game, "./Assets/Background/5-SkyBackground.png", .1, -3700, 13));
+
+        this.game.addEntity(new ParallaxLayer(this.game, "./Assets/IntroBackground/5.png", 0.1, -1300, 12));
+        this.game.addEntity(new ParallaxLayer(this.game, "./Assets/IntroBackground/6.png", 0.1, -1000, 12));
+        this.game.addEntity(new ParallaxLayer(this.game, "./Assets/IntroBackground/7.png", 0.1, -500, 12));
+        this.game.addEntity(new ParallaxLayer(this.game, "./Assets/Background/4-TreesBackground.png", 0.1, 300, 4));
         this.game.addEntity(new ParallaxLayer(this.game, "./Assets/Background/3-Trees.png", 0.3, 0, 5));
-        this.game.addEntity(new ParallaxLayer(this.game, "./Assets/Background/2-Trees.png", 0.5, 400, 2));
+        this.game.addEntity(new ParallaxLayer(this.game, "./Assets/Background/2-Trees.png", 0.5, -900, 6));
         this.game.addEntity(new ParallaxLayer(this.game, "./Assets/Background/1-Trees.png", 0.7, -25 , 4));
 
         this.game.addEntity(new HeartItem(this.game));
