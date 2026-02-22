@@ -91,8 +91,8 @@ class Otter {
             this.cakeTimer = 0;
         }
 
-        const WALK_SPEED = 150;
-        const RUN_SPEED = 1000;
+        const WALK_SPEED = 500;
+        const RUN_SPEED = 1500;
         const HOLD_THRESHOLD = 0.15; 
 
         const isA = this.game.keys["a"] || this.game.keys["A"];
