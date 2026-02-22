@@ -1,5 +1,6 @@
 import { WorldGenerator } from '../Background/WorldGenerator.js';
 import { WorldManager } from '../Background/WorldManager.js';
+import { PauseMenu } from './PauseMenu.js';
 import { IntroScreen } from './Introscreen.js';
 
 export class SceneManager {
@@ -10,22 +11,29 @@ export class SceneManager {
         this.x = 0;
         this.y = 0;
 
-        // Title screen is now handled entirely by IntroScreen —
-        // SceneManager starts with title = false so it never draws its own.
+        // Title screen handle entirely by IntroScreen 
+        // SceneManager starts with title (So it never draw on its own) 
         this.title = false;
         this.introCamera = false;
         this.gameOver = false;
         this.fadeAlpha = 0;
         this.spacePressed = false;
 
-        // Show the IntroScreen first; loadLevel() is called inside onPlay.
-        this._showIntroScreen();
+        // Pause state
+        this.paused = false;
+        this.pauseMenu = null;
+        this.pauseKeyHeld = false;
 
-        // Keep SceneManager at the end of the entity list so it draws on top.
-        this._bringToFront();
+        // SceneManager must always update (handles pause key, game-over click)
+        this.updateWhilePaused = true;
+
+        this.showIntroScreen();
+
+        // Keepign SceneManager at the end of the entity list so it draws on top
+        this.bringToFront();
     }
 
-    _bringToFront() {
+    bringToFront() {
         const index = this.game.entities.indexOf(this);
         if (index > -1) {
             this.game.entities.splice(index, 1);
@@ -33,7 +41,14 @@ export class SceneManager {
         }
     }
 
-    _showIntroScreen() {
+    showIntroScreen() {
+        // Setup to skip the intro
+        // this.loadLevel();
+        // this.introCamera = false;
+        // this.x = this.otter.x - 1024 / 2;
+        // this.y = this.otter.y - 768 / 2;
+        // this._bringToFront();
+
         const intro = new IntroScreen(
             this.game,
             () => {
@@ -41,7 +56,7 @@ export class SceneManager {
                 this.introCamera = true;
                 this.x = this.otter.x - 1024 / 2;
                 this.y = this.otter.y - 12000;
-                this._bringToFront();
+                this.bringToFront();
             },
             () => {},
             () => {}
@@ -49,8 +64,40 @@ export class SceneManager {
         this.game.addEntity(intro);
     }
 
-    // ── Level loading ─────────────────────────────────────────────────────────
+    togglePause() {
+        if (this.paused) {
+            //  Resume 
+            this.paused = false;
+            this.game.paused = false;           
+            if (this.pauseMenu) {
+                this.pauseMenu.removeFromWorld = true;
+                this.pauseMenu = null;
+            }
+        } else {
+            //  Pause 
+            this.paused = true;
+            this.game.paused = true;           
 
+            this.pauseMenu = new PauseMenu(
+                this.game,
+                () => {                         // onContinue
+                    this.paused = false;
+                    this.game.paused = false;
+                    this.pauseMenu = null;
+                },
+                () => {                         // onRestart
+                    this.paused = false;
+                    this.game.paused = false;
+                    this.pauseMenu = null;
+                    this.resetGame();
+                }
+            );
+            this.game.addEntity(this.pauseMenu);
+            this.bringToFront();
+        }
+    }
+
+    //  Level loading 
     loadLevel() {
         this.game.addEntity(new ParallaxLayer(this.game, "./Assets/Background/5-SkyBackground.png", .1, -3700, 13));
         this.game.addEntity(new ParallaxLayer(this.game, "./Assets/IntroBackground/4.png", 0.1, -1510, 12));
@@ -79,12 +126,13 @@ export class SceneManager {
         this.game.addEntity(this.otter);
     }
 
-    //  Reset (Game Over → Play Again)
-
+    //  Reset (Game Over t o Play Again) 
     resetGame() {
         this.gameOver = false;
         this.fadeAlpha = 0;
         this.introCamera = false;
+        this.paused = false;
+        this.game.paused = false;
         this.x = 0;
         this.y = 0;
 
@@ -97,12 +145,11 @@ export class SceneManager {
         });
 
         // Show the intro screen again for a clean restart
-        this._showIntroScreen();
-        this._bringToFront();
+        this.showIntroScreen();
+        this.bringToFront();
     }
 
-    // ── Draw ──────────────────────────────────────────────────────────────────
-
+    //  Draw 
     draw(ctx) {
         // Fade-to-black overlay (plays when otter dies)
         if (this.fadeAlpha > 0) {
@@ -126,10 +173,16 @@ export class SceneManager {
         }
     }
 
-    // ── Update ────────────────────────────────────────────────────────────────
-
+    //  Update 
     update() {
         // Always keep gameplay-critical entities drawn on top
+        if (this.game.keys['c'] && !this.coordKeyHeld) {
+            this.coordKeyHeld = true;
+            console.log(`Player X: ${Math.round(this.otter.x)}, Y: ${Math.round(this.otter.y)}`);
+        }
+
+        if (!this.game.keys['c']) this.coordKeyHeld = false;
+
         const foregroundClasses = [Ground, Otter, HealthBar, this];
         foregroundClasses.forEach(Cls => {
             const entity = Cls === this ? this : this.game.entities.find(e => e instanceof Cls);
@@ -142,7 +195,19 @@ export class SceneManager {
             }
         });
 
-        // ── Game Over ─────────────────────────────────────────────────────────
+        //  Pause toggle (Escape or P) 
+        const pauseKey = this.game.keys['Escape'] || this.game.keys['p'];
+        if (pauseKey && !this.pauseKeyHeld) {
+            this.pauseKeyHeld = true;
+            if (!this.gameOver && this.otter) this.togglePause();
+        }
+        if (!pauseKey) this.pauseKeyHeld = false;
+
+        // Freezing all SceneManager logic while paused
+        // (PauseMenu draws itself; engine skips all other entities)
+        if (this.paused) return;
+
+        // Game Over 
         if (this.gameOver) {
             if (this.game.click || this.game.keys[' ']) {
                 this.game.click = null;
@@ -151,10 +216,10 @@ export class SceneManager {
             return;
         }
 
-        // ── Wait until the otter has been spawned (intro screen not yet done) ─
+        //  Waiting until the otter has been spawned (so that we don't spawn during intro screen)
         if (!this.otter) return;
 
-        // ── Death → fade → game over ──────────────────────────────────────────
+        // Death to fade to game over
         if (this.otter.dead && this.otter.fragments.length === 0) {
             this.fadeAlpha += this.game.clockTick * 0.5;
             if (this.fadeAlpha >= 1) {
@@ -163,7 +228,7 @@ export class SceneManager {
             }
         }
 
-        // ── Intro camera drop (fires right after onPlay) ───────────────────────
+        //  Intro camera drop (fires right after onPlay)
         if (this.introCamera) {
             const targetX = this.otter.x - 1024 / 2;
             const targetY = this.otter.y - 768 / 2;
@@ -177,18 +242,20 @@ export class SceneManager {
             return;
         }
 
-        // ── Normal camera follow ──────────────────────────────────────────────
-        this.x = this.otter.x - 1024 / 2;
-        this.y = this.otter.y - 768 / 2;
+        //  Normal camera follow 
+        if (!this.game.endingActive) {
+            this.x = this.otter.x - 1024 / 2;
+            this.y = this.otter.y - 768 / 2;
+        }
 
-        // ── Space → mushroom attack ───────────────────────────────────────────
-        if (this.game.keys[' '] && !this.spacePressed) {
-            this.spacePressed = true;
-            const mushroom = this.game.entities.find(e => e instanceof Mushroom);
-            if (mushroom) mushroom.triggerAttackManually();
-        }
-        if (!this.game.keys[' ']) {
-            this.spacePressed = false;
-        }
+        //  Space to mushroom attack 
+        // if (this.game.keys[' '] && !this.spacePressed) {
+        //     this.spacePressed = true;
+        //     const mushroom = this.game.entities.find(e => e instanceof Mushroom);
+        //     if (mushroom) mushroom.triggerAttackManually();
+        // }
+        // if (!this.game.keys[' ']) {
+        //     this.spacePressed = false;
+        // }
     }
 }
