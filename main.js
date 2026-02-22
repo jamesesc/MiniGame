@@ -1,6 +1,6 @@
 import { SceneManager } from "./System/SceneManager.js"; // Added { } and .js
 
-window.gameEngine = new GameEngine({ debugging: true });
+window.gameEngine = new GameEngine({ debugging: false });
 window.ASSET_MANAGER = new AssetManager();
 
 // Ground Tiles
