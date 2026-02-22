@@ -21,6 +21,9 @@ class GameEngine {
         };
 
         this.camera = { x: 0, y: 0 };
+
+        // Set to true by SceneManager to freeze all gameplay entities
+        this.paused = false;
     };
 
     init(ctx) {
@@ -105,12 +108,17 @@ class GameEngine {
             let entity = this.entities[i];
 
             if (!entity.removeFromWorld) {
+                // Setting up the puased screen 
+                if (this.paused && !entity.updateWhilePaused) continue;
+
                 entity.update();
             }
         }
 
-
-        CollisionSystem.checkCollisions(this.entities);
+        // Skip collision detection while paused
+        if (!this.paused) {
+            CollisionSystem.checkCollisions(this.entities);
+        }
 
         for (let i = this.entities.length - 1; i >= 0; --i) {
             if (this.entities[i].removeFromWorld) {
