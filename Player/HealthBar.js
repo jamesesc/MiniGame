@@ -22,6 +22,7 @@ class HealthBar {
     }
 
     draw(ctx) {
+        if (this.game.endingActive) return;  
         const otter = this.game.camera.otter;
         if (!otter) return;
 
