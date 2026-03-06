@@ -95,14 +95,13 @@ class Otter {
         const RUN_SPEED = 1500;
         const HOLD_THRESHOLD = 0.15; 
 
-        const isA = this.game.keys["a"] || this.game.keys["A"];
-        const isD = this.game.keys["d"] || this.game.keys["D"];
-        const isW = this.game.keys["w"] || this.game.keys["W"];
-        const isS = this.game.keys["s"] || this.game.keys["S"];
-        const isE = this.game.keys["e"] || this.game.keys["E"];
-        const isCtrl = this.game.keys["Control"]; 
-        const isHoldingShift = this.game.keys["Shift"];
-
+        const isA = this.game.keys["KeyA"];
+        const isD = this.game.keys["KeyD"];
+        const isW = this.game.keys["KeyW"];
+        const isS = this.game.keys["KeyS"];
+        const isE = this.game.keys["KeyE"];
+        const isCtrl = this.game.keys["ControlLeft"] || this.game.keys["ControlRight"]; 
+        const isHoldingShift = this.game.keys["ShiftLeft"] || this.game.keys["ShiftRight"];
         if (isCtrl && !this.ctrlHeld) {
             this.shiftLock = !this.shiftLock;
             this.ctrlHeld = true;
