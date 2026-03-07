@@ -14,6 +14,9 @@ ASSET_MANAGER.queueDownload("./Assets/Background/3-Trees.png");
 ASSET_MANAGER.queueDownload("./Assets/Background/4-TreesBackground.png");
 ASSET_MANAGER.queueDownload("./Assets/Background/5-SkyBackground.png");
 
+// Birds
+ASSET_MANAGER.queueDownload("./Assets/Mobs/Bird/Bird.png");
+
 // Items
 
 // Hearts
