@@ -26,6 +26,25 @@ class CollisionSystem {
 
                     entities.splice(i, 1); 
             }
+
+            // Chest: only opens when otter is spinning 
+            if (entity instanceof ChestItem && !entity.isOpen &&
+                otter.BB && entity.BB && otter.BB.collide(entity.BB)) {
+                if (otter.action === "spin") {
+                    entity.open();
+
+                    for (let j = 0; j < 3; j++) {
+                        otter.game.addEntity(new HeartParticle(
+                            otter.game,
+                            entity.BB.x + entity.BB.width / 2,
+                            entity.BB.y
+                        ));
+                    }
+
+                    otter.health = Math.min(120, otter.health + 10);
+                    otter.healFlash = 0.7;
+                }
+            }
         
             if (entity instanceof Frog || entity instanceof Mushroom || entity instanceof Bee) { 
                 // Skip if entity is already dying - let it finish its death animation

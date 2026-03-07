@@ -24,6 +24,8 @@ ASSET_MANAGER.queueDownload("./Assets/Items/Hearts.png");
 
 ASSET_MANAGER.queueDownload("./Assets/Items/Strawberrycake.png");
 
+
+ASSET_MANAGER.queueDownload("./Assets/Items/TreasureChest.png");
 // Player Health
 ASSET_MANAGER.queueDownload("./Assets/Items/HealthBar.png");
 
