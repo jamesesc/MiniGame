@@ -149,13 +149,14 @@ class Bee {
             } 
             else {
                 this.game.entities.forEach(entity => {
-                    if (entity instanceof Ground && this.BB.collide(entity.BB)) {
+                    if (!this.BB) return;
+                    if (entity instanceof Ground && entity.BB && this.BB.collide(entity.BB)) { 
                         this.charging = false;
                         this.stuck = true;
-                        this.stuckTimer = 3; 
-                        this.y = entity.BB.y - this.BB.height - 140; 
+                        this.stuckTimer = 3;
+                        this.y = entity.BB.y - this.BB.height - 140;
                     }
-                });
+                })
             }
 
             if (this.y > 2000) { 
