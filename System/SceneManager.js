@@ -1,7 +1,10 @@
 import { WorldGenerator } from '../Background/WorldGenerator.js';
 import { WorldManager } from '../Background/WorldManager.js';
 import { PauseMenu } from './PauseMenu.js';
-import { IntroScreen } from './Introscreen.js';
+import { IntroScreen } from './Introscreen.js'; 
+import { BiomeAtmosphere } from '../Background/BiomeAtmosphere.js';
+
+
 
 export class SceneManager {
     constructor(game) {
@@ -42,26 +45,26 @@ export class SceneManager {
     }
 
     showIntroScreen() {
-        // Setup to skip the intro
-        // this.loadLevel();
-        // this.introCamera = false;
-        // this.x = this.otter.x - 1024 / 2;
-        // this.y = this.otter.y - 768 / 2;
-        // this._bringToFront();
+        //Setup to skip the intro
+        this.loadLevel();
+        this.introCamera = false;
+        this.x = this.otter.x - 1024 / 2;
+        this.y = this.otter.y - 768 / 2;
+        this.bringToFront();
 
-        const intro = new IntroScreen(
-            this.game,
-            () => {
-                this.loadLevel();
-                this.introCamera = true;
-                this.x = this.otter.x - 1024 / 2;
-                this.y = this.otter.y - 12000;
-                this.bringToFront();
-            },
-            () => {},
-            () => {}
-        );
-        this.game.addEntity(intro);
+        // const intro = new IntroScreen(
+        //     this.game,
+        //     () => {
+        //         this.loadLevel();
+        //         this.introCamera = true;
+        //         this.x = this.otter.x - 1024 / 2;
+        //         this.y = this.otter.y - 12000;
+        //         this.bringToFront();
+        //     },
+        //     () => {},
+        //     () => {}
+        // );
+        //this.game.addEntity(intro);
     }
 
     togglePause() {
@@ -110,8 +113,16 @@ export class SceneManager {
         this.game.addEntity(new ParallaxLayer(this.game, "./Assets/Background/2-Trees.png", 0.5, -700, 6));
         this.game.addEntity(new ParallaxLayer(this.game, "./Assets/Background/1-Trees.png", 0.7, -25,  4));
 
-        this.game.addEntity(new HeartItem(this.game));
-        this.game.addEntity(new CakeItem(this.game));
+        // this.game.addEntity(new HeartItem(this.game));
+        // this.game.addEntity(new CakeItem(this.game));
+        // this.game.addEntity(new ChestItem(this.game, 1050, 925));
+        this.game.addEntity(new BirdSpawner(this.game));
+
+        this.game.addEntity(new BiomeAtmosphere(this.game));
+
+
+
+
 
         const playerHealth = new Health(100);
         this.game.addEntity(new HealthBar(this.game, playerHealth));
@@ -124,6 +135,12 @@ export class SceneManager {
 
         this.otter = new Otter(this.game);
         this.game.addEntity(this.otter);
+
+        this.otter.x = 0; 
+
+        if (this.activeEffect?.rain) {
+    console.log("rain active, drops:", this.rainDrops.length);
+        }
     }
 
     //  Reset (Game Over t o Play Again) 
@@ -182,6 +199,7 @@ export class SceneManager {
         }
 
         if (!this.game.keys['c']) this.coordKeyHeld = false;
+        
 
         const foregroundClasses = [Ground, Otter, HealthBar, this];
         foregroundClasses.forEach(Cls => {
