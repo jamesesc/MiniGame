@@ -14,6 +14,10 @@ export class IntroScreen {
         this.showInfo = false;
         this.showSettings = false;
 
+        this.overlayTab = 0;
+this.overlayScroll = 0;
+this.overlayMaxScroll = 0;
+
         this.titleTime = 0;
         this.phase = 'menu';
         this.zoomTime = 0;
@@ -54,21 +58,63 @@ export class IntroScreen {
         this.mouseY = -1;
         this.mouseHandler = (e) => {
             const rect = this.game.ctx.canvas.getBoundingClientRect();
-            this.mouseX = e.clientX - rect.left;
-            this.mouseY = e.clientY - rect.top;
+        const scaleX = this.game.ctx.canvas.width  / rect.width;
+        const scaleY = this.game.ctx.canvas.height / rect.height;
+        this.mouseX = (e.clientX - rect.left) * scaleX;
+        this.mouseY = (e.clientY - rect.top)  * scaleY;
         };
         this.clickHandler = (e) => {
+        const rect = this.game.ctx.canvas.getBoundingClientRect();
+        const scaleX = this.game.ctx.canvas.width  / rect.width;
+        const scaleY = this.game.ctx.canvas.height / rect.height;
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top)  * scaleY;
+
+            // If overlay open, check tab clicks first
+            if (this.showInfo || this.showSettings) {
+                const W = this.game.ctx.canvas.width;
+                const H = this.game.ctx.canvas.height;
+                const ow = W * 0.62, oh = H * 0.75;
+                const ox = (W - ow) / 2, oy = (H - oh) / 2;
+                const tabs = this.showInfo ? ['Enemies', 'Cakes', 'Controls'] : ['Settings'];
+                const tabW = ow / tabs.length;
+                const tabH = H * 0.065;
+                for (let t = 0; t < tabs.length; t++) {
+                    const tx = ox + t * tabW, ty = oy;
+                    if (mx >= tx && mx <= tx + tabW && my >= ty && my <= ty + tabH) {
+                        this.overlayTab = t;
+                        this.overlayScroll = 0;
+                        return;
+                    }
+                }
+                // Click outside = close
+                if (mx < ox || mx > ox + ow || my < oy || my > oy + oh) {
+                    this.showInfo = false;
+                    this.showSettings = false;
+                }
+                return;
+            }
+
             if (this.phase !== 'menu') return;
-            const rect = this.game.ctx.canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
             this.handleMenuClick(mx, my, this.game.ctx.canvas.width, this.game.ctx.canvas.height);
         };
         window.addEventListener('mousemove', this.mouseHandler);
         window.addEventListener('click', this.clickHandler);
+
+        this.wheelHandler = (e) => {
+            if (!this.showInfo && !this.showSettings) return;
+            this.overlayScroll = Math.max(0,
+                Math.min(this.overlayMaxScroll, this.overlayScroll + e.deltaY * 0.4));
+        };
+        window.addEventListener('wheel', this.wheelHandler);
+
+
+
+
     }
 
     destroy() {
+        window.removeEventListener('wheel', this.wheelHandler);
         window.removeEventListener('mousemove', this.mouseHandler);
         window.removeEventListener('click', this.clickHandler);
         this.removeFromWorld = true;
@@ -92,11 +138,7 @@ export class IntroScreen {
     }
 
     handleMenuClick(mx, my, W, H) {
-        if (this.showInfo || this.showSettings) {
-            this.showInfo = false;
-            this.showSettings = false;
-            return;
-        }
+
         const rects = this.buttonRects(W, H);
         rects.forEach((r, i) => {
             if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
@@ -118,8 +160,12 @@ export class IntroScreen {
             this.bullet = null;
         } else if (i === 1) {
             this.showSettings = true;
+            this.overlayTab = 0;
+            this.overlayScroll = 0;
         } else if (i === 2) {
             this.showInfo = true;
+            this.overlayTab = 0;
+            this.overlayScroll = 0;
         }
     }
 
@@ -231,6 +277,20 @@ export class IntroScreen {
             this.fireflies.forEach(f => this.updateFireFly(f, dt));
             this.fireflies = this.fireflies.filter(f => f.life < f.maxLife);
 
+            if (this.showInfo || this.showSettings) {
+                const up   = this.game.keys['ArrowUp']   || this.game.keys['w'];
+                const down = this.game.keys['ArrowDown'] || this.game.keys['s'];
+                if (up && !this.menuKeyPressed) {
+                    this.overlayScroll = Math.max(0, this.overlayScroll - 60);
+                    this.menuKeyPressed = true;
+                } else if (down && !this.menuKeyPressed) {
+                    this.overlayScroll = Math.min(this.overlayMaxScroll, this.overlayScroll + 60);
+                    this.menuKeyPressed = true;
+                }
+            if (!up && !down) this.menuKeyPressed = false;
+            return;
+            }
+
             const up    = this.game.keys['ArrowUp']   || this.game.keys['w'];
             const down  = this.game.keys['ArrowDown'] || this.game.keys['s'];
             const enter = this.game.keys['Enter']     || this.game.keys[' '];
@@ -305,24 +365,8 @@ export class IntroScreen {
             ctx.textAlign = 'left';
             ctx.fillText('version 1.0', W * 0.03, H - 12);
 
-            if (this.showInfo) this.drawOverlay(ctx, W, H, 'Info', [
-                'Battle through the forest as a brave otter!',
-                'Defeat mushrooms, frogs, and bees.',
-                'Collect hearts and cakes to restore health.',
-                'Reach the end to win!',
-                '',
-                'Arrow Keys / WD — Move Left or Right',
-                'E - Attack',
-                'W / Space — Jump', 
-                '',
-                'Click anywhere to close.',
-            ]);
-            if (this.showSettings) this.drawOverlay(ctx, W, H, 'Settings', [
-                '', 
-                '(Coming soon!)', 
-                '', 
-                'Click anywhere to close.',
-            ]);
+            if (this.showInfo)     this.drawTabOverlay(ctx, W, H, 'info');
+            if (this.showSettings) this.drawTabOverlay(ctx, W, H, 'settings');
         }
 
         // Fireflies clipped to background zone
@@ -739,6 +783,438 @@ export class IntroScreen {
         ctx.fillStyle = '#ddc880';
         lines.forEach((line, i) => ctx.fillText(line, ox + ow / 2, oy + H * 0.12 + i * H * 0.045));
     }
+    drawTabOverlay(ctx, W, H, mode) {
+        // Dim background
+        ctx.fillStyle = 'rgba(0,0,0,0.72)';
+        ctx.fillRect(0, 0, W, H);
+
+        const ow = W * 0.62, oh = H * 0.75;
+        const ox = (W - ow) / 2, oy = (H - oh) / 2;
+
+        const tabs = mode === 'info'
+            ? ['⚔ Enemies', '🍰 Cakes', '🎮 Controls']
+            : ['⚙ Settings'];
+
+        const tabH = H * 0.065;
+        const tabW = ow / tabs.length;
+
+        // Draw tabs
+        tabs.forEach((label, t) => {
+            const tx = ox + t * tabW, ty = oy;
+            const active = t === this.overlayTab;
+            const tabGrad = ctx.createLinearGradient(tx, ty, tx, ty + tabH);
+            if (active) {
+                tabGrad.addColorStop(0, '#8a5a20');
+                tabGrad.addColorStop(1, '#5c3a10');
+            } else {
+                tabGrad.addColorStop(0, '#4a3010');
+                tabGrad.addColorStop(1, '#2e1c06');
+            }
+            ctx.fillStyle = tabGrad;
+            // Rounded top only for active
+            ctx.beginPath();
+            const r = 8;
+            ctx.moveTo(tx + r, ty);
+            ctx.lineTo(tx + tabW - r, ty);
+            ctx.quadraticCurveTo(tx + tabW, ty, tx + tabW, ty + r);
+            ctx.lineTo(tx + tabW, ty + tabH);
+            ctx.lineTo(tx, ty + tabH);
+            ctx.lineTo(tx, ty + r);
+            ctx.quadraticCurveTo(tx, ty, tx + r, ty);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = active ? '#c08830' : '#5a3a10';
+            ctx.lineWidth = active ? 2 : 1;
+            ctx.stroke();
+
+            ctx.fillStyle = active ? '#ffe98a' : '#9a7840';
+            ctx.font = `bold ${Math.round(H * 0.038)}px Georgia, serif`;
+            ctx.textAlign = 'center';
+            ctx.fillText(label, tx + tabW / 2, ty + tabH * 0.65);
+        });
+
+        // Main panel body
+        const panelY = oy + tabH;
+        const panelH = oh - tabH;
+        const woodGrad = ctx.createLinearGradient(ox, panelY, ox, panelY + panelH);
+        woodGrad.addColorStop(0, '#7a4e1a');
+        woodGrad.addColorStop(1, '#3a2008');
+        ctx.fillStyle = woodGrad;
+        _roundRect(ctx, ox, panelY, ow, panelH, 10);
+        ctx.fill();
+        ctx.strokeStyle = '#a06828';
+        ctx.lineWidth = 2.5;
+        _roundRect(ctx, ox + 4, panelY + 4, ow - 8, panelH - 8, 8);
+        ctx.stroke();
+
+        // Wood grain
+        ctx.strokeStyle = 'rgba(0,0,0,0.07)';
+        ctx.lineWidth = 1;
+        for (let g = 0; g < 8; g++) {
+            const gy = panelY + 10 + g * (panelH / 8.5);
+            ctx.beginPath();
+            ctx.moveTo(ox + 12, gy);
+            ctx.lineTo(ox + ow - 12, gy + (g % 2 === 0 ? 4 : -3));
+            ctx.stroke();
+        }
+
+        // Clip content area
+        const padX = 28, padTop = 18, padBot = 24;
+        const contentX = ox + padX;
+        const contentY = panelY + padTop;
+        const contentW = ow - padX * 2 - 18; // leave room for scrollbar
+        const contentH = panelH - padTop - padBot;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(contentX, contentY, contentW, contentH);
+        ctx.clip();
+
+        // Render tab content
+        const scrollY = contentY - this.overlayScroll;
+        let totalH = 0;
+
+        if (mode === 'settings') {
+            totalH = this._drawSettingsContent(ctx, contentX, scrollY, contentW, H);
+        } else if (this.overlayTab === 0) {
+            totalH = this._drawEnemiesContent(ctx, contentX, scrollY, contentW, H);
+        } else if (this.overlayTab === 1) {
+            totalH = this._drawCakesContent(ctx, contentX, scrollY, contentW, H);
+        } else if (this.overlayTab === 2) {
+            totalH = this._drawControlsContent(ctx, contentX, scrollY, contentW, H);
+        }
+
+        this.overlayMaxScroll = Math.max(0, totalH - contentH);
+        ctx.restore();
+
+        // Scrollbar
+        if (this.overlayMaxScroll > 0) {
+            const sbX = ox + ow - 16;
+            const sbY = contentY;
+            const sbH = contentH;
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            _roundRect(ctx, sbX, sbY, 8, sbH, 4);
+            ctx.fill();
+            const thumbH = Math.max(30, sbH * (contentH / (contentH + this.overlayMaxScroll)));
+            const thumbY = sbY + (this.overlayScroll / this.overlayMaxScroll) * (sbH - thumbH);
+            ctx.fillStyle = '#c08830';
+            _roundRect(ctx, sbX, thumbY, 8, thumbH, 4);
+            ctx.fill();
+        }
+
+        // Scroll hint
+        if (this.overlayMaxScroll > 0 && this.overlayScroll < 10) {
+            ctx.fillStyle = 'rgba(200,180,100,0.5)';
+            ctx.font = `italic ${Math.round(H * 0.03)}px Georgia, serif`;
+            ctx.textAlign = 'center';
+            ctx.fillText('▼ scroll for more', ox + ow / 2, panelY + panelH - 8);
+        }
+
+        // Close hint
+        ctx.fillStyle = 'rgba(180,160,80,0.45)';
+        ctx.font = `italic ${Math.round(H * 0.028)}px Georgia, serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('Click outside to close', ox + ow / 2, oy + oh + H * 0.03);
+    }
+
+    _drawSectionTitle(ctx, x, y, text, W, H) {
+        const grad = ctx.createLinearGradient(x, y, x, y + H * 0.055);
+        grad.addColorStop(0, '#ffe98a');
+        grad.addColorStop(1, '#d4a820');
+        ctx.fillStyle = grad;
+        ctx.font = `bold ${Math.round(H * 0.048)}px Georgia, serif`;
+        ctx.textAlign = 'left';
+        ctx.fillText(text, x, y + H * 0.04);
+        // Underline
+        ctx.strokeStyle = '#c08030';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x, y + H * 0.05);
+        ctx.lineTo(x + W * 0.55, y + H * 0.05);
+        ctx.stroke();
+        return H * 0.065;
+    }
+
+    _drawBodyText(ctx, x, y, text, color, H, wrap, maxW) {
+        ctx.fillStyle = color || '#ddc880';
+        ctx.font = `${Math.round(H * 0.036)}px Georgia, serif`;
+        ctx.textAlign = 'left';
+        if (!wrap) {
+            ctx.fillText(text, x, y + H * 0.032);
+            return H * 0.044;
+        }
+        // Word wrap
+        const words = text.split(' ');
+        let line = '', lineH = H * 0.042, totalH = 0, cy = y;
+        for (const word of words) {
+            const test = line ? line + ' ' + word : word;
+            if (ctx.measureText(test).width > maxW && line) {
+                ctx.fillText(line, x, cy + H * 0.032);
+                cy += lineH; totalH += lineH;
+                line = word;
+            } else { line = test; }
+        }
+        if (line) { ctx.fillText(line, x, cy + H * 0.032); totalH += lineH; }
+        return totalH;
+    }
+
+    _drawEnemiesContent(ctx, x, y, w, H) {
+        const enemies = [
+            {
+                name: 'Mushroom',
+                emoji: '🍄',
+                color: '#e87060',
+                hp: '❤❤',
+                dmg: '1 heart',
+                behavior: 'Walks back and forth. Turns around at edges and walls. Harmless unless touched.',
+                drops: 'Nothing',
+            },
+            {
+                name: 'Frog',
+                emoji: '🐸',
+                color: '#60c860',
+                hp: '❤❤❤',
+                dmg: '1 heart',
+                behavior: 'Jumps periodically toward the player. Hard to dodge mid-air. Higher health than mushroom.',
+                drops: 'Nothing',
+            },
+            {
+                name: 'Bee',
+                emoji: '🐝',
+                color: '#f0c030',
+                hp: '❤',
+                dmg: '1 heart',
+                behavior: 'Flies in a sine-wave pattern. Moves faster than ground enemies. Low health but tricky to hit.',
+                drops: 'Nothing',
+            },
+        ];
+
+        let cy = y;
+        const lineH = H * 0.044;
+        const cardH = H * 0.19;
+        const cardPad = 14;
+
+        cy += H * 0.01;
+
+        enemies.forEach(e => {
+            // Card background
+            ctx.fillStyle = 'rgba(0,0,0,0.28)';
+            _roundRect(ctx, x, cy + 3, w, cardH, 6);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,0.04)';
+            _roundRect(ctx, x, cy, w, cardH, 6);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(180,120,30,0.4)';
+            ctx.lineWidth = 1.5;
+            _roundRect(ctx, x, cy, w, cardH, 6);
+            ctx.stroke();
+
+            // Emoji icon
+            ctx.font = `${Math.round(H * 0.09)}px serif`;
+            ctx.textAlign = 'center';
+            ctx.fillText(e.emoji, x + cardPad + H * 0.048, cy + cardH * 0.52);
+
+            // Name
+            const tx = x + cardPad + H * 0.1 + 8;
+            ctx.fillStyle = e.color;
+            ctx.font = `bold ${Math.round(H * 0.048)}px Georgia, serif`;
+            ctx.textAlign = 'left';
+            ctx.fillText(e.name, tx, cy + H * 0.055);
+
+            // Stats row
+            ctx.fillStyle = '#b0d0ff';
+            ctx.font = `${Math.round(H * 0.033)}px Georgia, serif`;
+            ctx.fillText(`HP: ${e.hp}   DMG: ${e.dmg}`, tx, cy + H * 0.098);
+
+            // Behavior
+            ctx.fillStyle = '#ddc880';
+            ctx.font = `${Math.round(H * 0.032)}px Georgia, serif`;
+            // Simple wrap
+            const words = e.behavior.split(' ');
+            let line = '', lx = tx, bY = cy + H * 0.135, bMaxW = w - (tx - x) - cardPad;
+            for (const word of words) {
+                const test = line ? line + ' ' + word : word;
+                if (ctx.measureText(test).width > bMaxW && line) {
+                    ctx.fillText(line, lx, bY);
+                    bY += H * 0.038;
+                    line = word;
+                } else line = test;
+            }
+            if (line) ctx.fillText(line, lx, bY);
+
+            cy += cardH + 12;
+        });
+
+        return cy - y + 10;
+    }
+
+    _drawCakesContent(ctx, x, y, w, H) {
+        const cakes = [
+            { file: 'blackforest',      name: 'Black Forest',       heal: '+2 HP', desc: 'A rich dark cake. Rare find.' },
+            { file: 'blueberrycheesecake', name: 'Blueberry Cheesecake', heal: '+1 HP', desc: 'Creamy with a berry topping.' },
+            { file: 'carrotcake',       name: 'Carrot Cake',        heal: '+1 HP', desc: 'Earthy and sweet.' },
+            { file: 'cherry', name: 'Cherry Cheesecake',  heal: '+2 HP', desc: 'A tart cherry burst.' },
+            { file: 'Chocolatecake',    name: 'Chocolate Cake',     heal: '+1 HP', desc: 'Classic and delicious.' },
+            { file: 'funcake',          name: 'Fun Cake',           heal: '+3 HP', desc: 'Sprinkles everywhere! Best heal.' },
+            { file: 'honey',            name: 'Honey Cake',         heal: '+1 HP', desc: 'Golden and sticky sweet.' },
+            { file: 'icecreamcake',     name: 'Ice Cream Cake',     heal: '+2 HP', desc: 'Cold and refreshing.' },
+            { file: 'kiwi',             name: 'Kiwi Cake',          heal: '+1 HP', desc: 'Tropical and bright green.' },
+            { file: 'LemonCake',        name: 'Lemon Cake',         heal: '+1 HP', desc: 'Zesty and tangy.' },
+            { file: 'pistachiocake',    name: 'Pistachio Cake',     heal: '+2 HP', desc: 'Nutty with a green hue.' },
+            { file: 'redvelvet',        name: 'Red Velvet',         heal: '+2 HP', desc: 'Velvet smooth, cream frosted.' },
+            { file: 'strawberrycake',   name: 'Strawberry Cake',    heal: '+1 HP', desc: 'Fresh summer berry flavor.' },
+            { file: 'cakeyy',  name: 'Strawberry Cake',   heal: '+1 HP', desc: 'Light and fluffy.' },
+            { file: 'upsidedown',       name: 'Upside Down Cake',   heal: '+2 HP', desc: 'Caramelized pineapple top.' },
+            { file: 'vanilacake',       name: 'Vanilla Cake',       heal: '+1 HP', desc: 'Simple, classic, reliable.' },
+        ];
+
+        const cols = 2;
+        const cardW = (w - 12) / cols;
+        const cardH = H * 0.12;
+        const imgSize = H * 0.075;
+        let cy = y + H * 0.01;
+
+        for (let i = 0; i < cakes.length; i++) {
+            const col = i % cols;
+            const cx2 = x + col * (cardW + 12);
+            if (col === 0 && i > 0) cy += cardH + 10;
+
+            const c = cakes[i];
+            const imgPath = `./Assets/Items/Cakes/${c.file}.png`;
+
+            const img = ASSET_MANAGER.getAsset(imgPath);
+
+            // Card bg
+            ctx.fillStyle = 'rgba(0,0,0,0.25)';
+            _roundRect(ctx, cx2, cy + 2, cardW, cardH, 5);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,200,0.04)';
+            _roundRect(ctx, cx2, cy, cardW, cardH, 5);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(200,160,50,0.35)';
+            ctx.lineWidth = 1;
+            _roundRect(ctx, cx2, cy, cardW, cardH, 5);
+            ctx.stroke();
+
+            // Cake sprite or emoji fallback
+            const imgX = cx2 + 10;
+            const imgY = cy + (cardH - imgSize) / 2;
+            if (img) {
+                ctx.drawImage(img, imgX, imgY, imgSize, imgSize);
+            } else {
+                ctx.font = `${Math.round(imgSize * 0.8)}px serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText('🍰', imgX + imgSize / 2, imgY + imgSize * 0.8);
+            }
+
+            // Text
+            const tx = cx2 + imgSize + 18;
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#ffe98a';
+            ctx.font = `bold ${Math.round(H * 0.036)}px Georgia, serif`;
+            ctx.fillText(c.name, tx, cy + H * 0.042);
+
+            ctx.fillStyle = '#90ee90';
+            ctx.font = `bold ${Math.round(H * 0.03)}px Georgia, serif`;
+            ctx.fillText(c.heal, tx, cy + H * 0.072);
+
+            ctx.fillStyle = '#c8b878';
+            ctx.font = `${Math.round(H * 0.028)}px Georgia, serif`;
+            ctx.fillText(c.desc, tx, cy + H * 0.098);
+        }
+
+        const rows = Math.ceil(cakes.length / cols);
+        return rows * (cardH + 10) + H * 0.02;
+    }
+
+    _drawControlsContent(ctx, x, y, w, H) {
+        const groups = [
+            {
+                title: 'Movement',
+                items: [
+                    ['Arrow Left / A', 'Move left'],
+                    ['Arrow Right / D', 'Move right'],
+                    ['W / Space', 'Jump'],
+                    ['W / Space (again)', 'Double jump (if unlocked)'],
+                ]
+            },
+            {
+                title: 'Combat',
+                items: [
+                    ['E', 'Attack — swing your weapon'],
+                    ['Walk into enemy', 'You take damage, avoid contact!'],
+                ]
+            },
+            {
+                title: 'Tips',
+                items: [
+                    ['Cakes', 'Restore health — collect them!'],
+                    ['Hearts', 'Also restore health'],
+                    ['Reach the end', 'Complete the level to win'],
+                    ['Defeat enemies', 'Stomp or attack to clear path'],
+                ]
+            },
+        ];
+
+        let cy = y + H * 0.01;
+
+        groups.forEach(g => {
+            // Section title
+            const grad = ctx.createLinearGradient(x, cy, x, cy + H * 0.05);
+            grad.addColorStop(0, '#ffe98a');
+            grad.addColorStop(1, '#d4a820');
+            ctx.fillStyle = grad;
+            ctx.font = `bold ${Math.round(H * 0.046)}px Georgia, serif`;
+            ctx.textAlign = 'left';
+            ctx.fillText(g.title, x, cy + H * 0.038);
+            ctx.strokeStyle = '#c08030';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x, cy + H * 0.048);
+            ctx.lineTo(x + w * 0.5, cy + H * 0.048);
+            ctx.stroke();
+            cy += H * 0.062;
+
+            g.items.forEach(([key, desc]) => {
+                // Key badge
+                const badgeW = w * 0.38;
+                ctx.fillStyle = 'rgba(0,0,0,0.35)';
+                _roundRect(ctx, x, cy, badgeW, H * 0.044, 4);
+                ctx.fill();
+                ctx.strokeStyle = '#8a6020';
+                ctx.lineWidth = 1;
+                _roundRect(ctx, x, cy, badgeW, H * 0.044, 4);
+                ctx.stroke();
+                ctx.fillStyle = '#ffe060';
+                ctx.font = `bold ${Math.round(H * 0.032)}px Georgia, serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText(key, x + badgeW / 2, cy + H * 0.031);
+
+                // Description
+                ctx.fillStyle = '#ddc880';
+                ctx.font = `${Math.round(H * 0.032)}px Georgia, serif`;
+                ctx.textAlign = 'left';
+                ctx.fillText(desc, x + badgeW + 14, cy + H * 0.031);
+
+                cy += H * 0.055;
+            });
+            cy += H * 0.02;
+        });
+
+        return cy - y;
+    }
+
+    _drawSettingsContent(ctx, x, y, w, H) {
+        ctx.fillStyle = '#ddc880';
+        ctx.font = `italic ${Math.round(H * 0.042)}px Georgia, serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('Settings coming soon!', x + w / 2, y + H * 0.12);
+        ctx.font = `${Math.round(H * 0.032)}px Georgia, serif`;
+        ctx.fillStyle = '#a08840';
+        ctx.fillText('Volume, keybinds, and more will appear here.', x + w / 2, y + H * 0.18);
+        return H * 0.3;
+    }
 }
 
     function _roundRect(ctx, x, y, w, h, r) {
@@ -754,3 +1230,5 @@ export class IntroScreen {
         ctx.quadraticCurveTo(x, y, x + r, y);
         ctx.closePath();
     }
+
+    

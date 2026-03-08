@@ -1,100 +1,444 @@
-﻿
-<!DOCTYPE html>
-<html>
+﻿<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Otter and her Adventure</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Wacky Tacky Otter Crazy Adventure</title>
 
     <script type="importmap">
     {
         "imports": {
-        "rand-seed": "https://esm.sh/rand-seed@1.0.2"
+            "rand-seed": "https://esm.sh/rand-seed@1.0.2"
         }
     }
     </script>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;  
-            min-height: 100vh; 
-            background-color: #333; 
-            overflow: auto;
-            font-family: 'Arial', sans-serif;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;  
-            padding-top: 50px;     
+        /* ─── CSS Variables ─── */
+        :root {
+            --wood-dark:    #3d1e08;
+            --wood-mid:     #6b3a1f;
+            --wood-light:   #9c5c2a;
+            --wood-gold:    #c8922a;
+            --green-dark:   #2a5c1a;
+            --green-mid:    #3d8c25;
+            --green-light:  #5cb82e;
+            --dirt:         #5c3a1e;
+            --sky-top:      #1a3a5c;
+            --sky-bottom:   #4a7faa;
+            --text-gold:    #f0c060;
+            --text-light:   #f5e8c8;
+            --shadow:       rgba(0,0,0,0.85);
         }
 
-        .game-container {
+        /* ─── Reset & Base ─── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { height: 100%; }
+
+        body {
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            /* Subtle pixel-grid texture */
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(0,0,0,0.15) 3px,
+                    rgba(0,0,0,0.15) 4px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(0,0,0,0.15) 3px,
+                    rgba(0,0,0,0.15) 4px
+                );
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
+            justify-content: flex-start;
+            padding: 32px 16px 48px;
+            font-family: 'Press Start 2P', monospace;
+            color: var(--text-light);
+            overflow-x: hidden;
         }
 
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
+        /* ─── Page Header ─── */
+        .page-header {
+            text-align: center;
+            margin-bottom: 24px;
+            animation: fadeDown 0.6s ease both;
+        }
+
+        .title-board {
+            display: inline-block;
+            background: linear-gradient(180deg, var(--wood-light) 0%, var(--wood-mid) 40%, var(--wood-dark) 100%);
+            border: 4px solid var(--wood-gold);
+            border-radius: 4px;
+            padding: 14px 36px 12px;
+            box-shadow:
+                0 6px 0 var(--wood-dark),
+                0 8px 20px var(--shadow),
+                inset 0 1px 0 rgba(255,255,255,0.15);
+            position: relative;
+        }
+
+        /* Wood grain lines */
+        .title-board::before {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 18px,
+                rgba(0,0,0,0.08) 18px,
+                rgba(0,0,0,0.08) 20px
+            );
+            pointer-events: none;
+            border-radius: 2px;
+        }
+
+        .title-board h1 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(0.75rem, 2.2vw, 1.15rem);
+            color: var(--text-gold);
+            text-shadow:
+                2px 2px 0 var(--wood-dark),
+                0 0 12px rgba(240, 192, 96, 0.4);
+            letter-spacing: 0.04em;
+            line-height: 1.6;
             text-transform: uppercase;
-            text-shadow: 3px 3px 0px #000;
+            position: relative;
+        }
+
+        .title-board h1 span {
+            display: block;
+            font-size: clamp(0.55rem, 1.4vw, 0.8rem);
+            color: #e8b040;
+            margin-top: 4px;
+            letter-spacing: 0.08em;
+        }
+
+        /* ─── Game Wrapper (TV frame) ─── */
+        .game-wrapper {
+            position: relative;
+            animation: fadeUp 0.7s 0.2s ease both;
+        }
+
+        /* Outer TV bezel */
+        .tv-bezel {
+            background: linear-gradient(160deg, #2a2a2a 0%, #111 50%, #1e1e1e 100%);
+            border-radius: 12px;
+            padding: 20px 24px 28px;
+            box-shadow:
+                0 0 0 2px #444,
+                0 0 0 4px #222,
+                0 20px 60px rgba(0,0,0,0.9),
+                0 0 80px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        /* Scanline overlay on the bezel */
+        .tv-bezel::after {
+            content: '';
+            position: absolute;
+            inset: 20px 24px 28px;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.06) 2px,
+                rgba(0,0,0,0.06) 4px
+            );
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Screen inner border */
+        .screen-border {
+            border: 3px solid #000;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow:
+                inset 0 0 0 1px #333,
+                inset 0 0 30px rgba(0,0,0,0.5);
+            line-height: 0;
         }
 
         canvas {
-            image-rendering: pixelated; 
-            /* Your desired TV border */
-            border: 33px solid black;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            margin: 20px 0;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            display: block;
+            max-width: 100%;
         }
 
-        .info-section {
+        /* TV bottom details */
+        .tv-details {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
             margin-top: 10px;
         }
 
-        h1 {
-            font-size: 5rem;         
-            margin-bottom: 30px;       
+        .tv-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #333;
+            border: 1px solid #555;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .tv-dot.power {
+            background: var(--green-dark);
+            box-shadow: 0 0 6px var(--green-light), inset 0 1px 0 rgba(255,255,255,0.2);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .tv-brand {
+            font-family: 'VT323', monospace;
+            font-size: 0.85rem;
+            color: #444;
+            letter-spacing: 0.15em;
             text-transform: uppercase;
-            text-shadow: 4px 4px 0px #000; 
-        }
-        
-        h2, h3, h4 {
-            margin: 5px 0;
-            font-weight: normal;
         }
 
-        /* TCSS 491 text */
-        .info-section h2 {
-            font-size: 5rem; 
+        /* ─── Info Bar ─── */
+        .info-bar {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            margin-top: 20px;
+            background: linear-gradient(180deg, var(--wood-light) 0%, var(--wood-mid) 100%);
+            border: 3px solid var(--wood-gold);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 0 var(--wood-dark), 0 6px 16px var(--shadow);
+            width: 100%;
+            max-width: 860px;
+            animation: fadeUp 0.7s 0.35s ease both;
         }
 
-        /* Name text */
-        .info-section h3 {
-            font-size: 4rem;   
+        .info-panel {
+            flex: 1;
+            padding: 10px 16px;
+            border-right: 2px solid var(--wood-dark);
+            text-align: center;
         }
 
-        /* Controls text */
-        .info-section h4 {
-            font-size: 3rem; 
-            margin: 10px 0;
+        .info-panel:last-child { border-right: none; }
+
+        .info-panel .label {
+            font-size: 0.4rem;
+            color: var(--wood-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .info-panel .value {
+            font-family: 'VT323', monospace;
+            font-size: 1.1rem;
+            color: var(--text-light);
+            letter-spacing: 0.06em;
+        }
+
+        /* ─── Controls Section ─── */
+        .controls-section {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 860px;
+            animation: fadeUp 0.7s 0.5s ease both;
+        }
+
+        .controls-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .controls-header .line {
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--wood-gold), transparent);
+        }
+
+        .controls-header span {
+            font-size: 0.45rem;
+            color: var(--wood-gold);
+            letter-spacing: 0.15em;
+            white-space: nowrap;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
+        }
+
+        .control-item {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid var(--wood-mid);
+            border-radius: 4px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .control-item:hover {
+            border-color: var(--wood-gold);
+            background: rgba(107, 58, 31, 0.3);
+        }
+
+        .key {
+            font-family: 'VT323', monospace;
+            font-size: 1rem;
+            background: linear-gradient(180deg, var(--wood-light), var(--wood-mid));
+            border: 2px solid var(--wood-gold);
+            border-bottom-width: 3px;
+            border-radius: 3px;
+            padding: 2px 8px;
+            min-width: 32px;
+            text-align: center;
+            color: var(--text-gold);
+            box-shadow: 0 2px 0 var(--wood-dark);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .control-desc {
+            font-family: 'VT323', monospace;
+            font-size: 0.95rem;
+            color: var(--text-light);
+            letter-spacing: 0.04em;
+        }
+
+        /* ─── Footer ─── */
+        .page-footer {
+            margin-top: 28px;
+            text-align: center;
+            animation: fadeUp 0.7s 0.65s ease both;
+        }
+
+        .page-footer p {
+            font-family: 'VT323', monospace;
+            font-size: 0.9rem;
+            color: #555;
+            letter-spacing: 0.1em;
+            line-height: 1.8;
+        }
+
+        .page-footer .highlight { color: var(--wood-gold); }
+
+        /* ─── Animations ─── */
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.4; }
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 600px) {
+            .info-bar { flex-direction: column; }
+            .info-panel { border-right: none; border-bottom: 2px solid var(--wood-dark); }
+            .info-panel:last-child { border-bottom: none; }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-
-         <canvas id="gameWorld" width="5000" height="1100" style="background: white; border: 1px solid black" tabindex="0" autofocus></canvas>
-
-        <div class="info-section">
-           
+    <!-- ── Canvas / TV Frame ── -->
+    <div class="game-wrapper">
+        <div class="tv-bezel">
+            <div class="screen-border">
+                <canvas
+                    id="gameWorld"
+                    width="5000"
+                    height="1100"
+                    tabindex="0"
+                    autofocus
+                ></canvas>
+            </div>
+            <div class="tv-details">
+                <div class="tv-dot"></div>
+                <div class="tv-dot"></div>
+                <div class="tv-brand">WackyTacky v1.0</div>
+                <div class="tv-dot"></div>
+                <div class="tv-dot power"></div>
+            </div>
         </div>
     </div>
+
+    <!-- ── Info Bar ── -->
+    <div class="info-bar">
+        <div class="info-panel">
+            <span class="label">Course</span>
+            <span class="value">TCSS 491</span>
+        </div>
+        <div class="info-panel">
+            <span class="label">Team</span>
+            <span class="value">Otter Devs</span>
+        </div>
+        <div class="info-panel">
+            <span class="label">Version</span>
+            <span class="value">1.0.0</span>
+        </div>
+    </div>
+
+    <!-- ── Controls ── -->
+    <section class="controls-section">
+        <div class="controls-header">
+            <div class="line"></div>
+            <span>— Controls —</span>
+            <div class="line"></div>
+        </div>
+        <div class="controls-grid">
+            <div class="control-item">
+                <span class="key">A / ←</span>
+                <span class="control-desc">Move Left</span>
+            </div>
+            <div class="control-item">
+                <span class="key">D / →</span>
+                <span class="control-desc">Move Right</span>
+            </div>
+            <div class="control-item">
+                <span class="key">Space</span>
+                <span class="control-desc">Jump</span>
+            </div>
+            <div class="control-item">
+                <span class="key">E</span>
+                <span class="control-desc">Interact</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Footer ── -->
+    <footer class="page-footer">
+        <p>
+            Built with <span class="highlight">♥</span> using HTML5 Canvas &amp; Vanilla JS<br>
+            <span class="highlight">TCSS 491</span> · University of Washington Tacoma
+        </p>
+    </footer>
+
+    <!-- ── Scripts ── -->
     <script type="text/javascript" src="System/assetmanager.js"></script>
     <script type="text/javascript" src="System/timer.js"></script>
     <script type="text/javascript" src="System/gameengine.js"></script>

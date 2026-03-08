@@ -1,6 +1,6 @@
 import { SceneManager } from "./System/SceneManager.js"; // Added { } and .js
 
-window.gameEngine = new GameEngine({ debugging: false });
+window.gameEngine = new GameEngine({ debugging: true });
 window.ASSET_MANAGER = new AssetManager();
 
 // Ground Tiles
@@ -17,6 +17,21 @@ ASSET_MANAGER.queueDownload("./Assets/Background/5-SkyBackground.png");
 // Birds
 ASSET_MANAGER.queueDownload("./Assets/Mobs/Bird/Bird.png");
 
+// Decorations
+for (let i = 1; i <= 10; i++) {
+    ASSET_MANAGER.queueDownload(`./Assets/Decorations/${i}.png`);
+}
+
+const decorationFiles = [
+    '2323', '3434', '22323', '2323232',
+    'Buildings', 'Bush - 60F', 'ELR_FireFlies', 'Enviroment',
+    'Foozle_2DT0008_GreenValley_Tileset_...',
+    'Grass_Details_Sprite1', 'Hive', 'Interior-01',
+    'Pine - 60F', 'Pine II - 60F', 'Props-Rocks', 'Tiles', 'Tree-Assets'
+];
+
+decorationFiles.forEach(f => ASSET_MANAGER.queueDownload(`./Assets/Decorations/${f}.png`));
+
 // Items
 
 // Hearts
@@ -28,6 +43,18 @@ ASSET_MANAGER.queueDownload("./Assets/Items/Strawberrycake.png");
 ASSET_MANAGER.queueDownload("./Assets/Items/TreasureChest.png");
 // Player Health
 ASSET_MANAGER.queueDownload("./Assets/Items/HealthBar.png");
+
+const cakeFiles = [
+    'blackforest','blueberrycheesecake','carrotcake','cherry',
+    'Chocolatecake','funcake','honey','icecreamcake','kiwi','LemonCake',
+    'pistachiocake','redvelvet','strawberrycake','cakeyy',
+    'upsidedown','vanilacake'
+];
+
+cakeFiles.forEach(f => ASSET_MANAGER.queueDownload(`./Assets/Items/Cakes/${f}.png`));
+
+
+
 
 
 // Mobs
