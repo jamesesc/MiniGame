@@ -57,12 +57,4 @@ class Health {
     reset() {
         this.current = this.max;
     }
-    
-    /**
-     * Returns the current health as a percentage of the maximum health.
-     * @returns {number} - The health percentage.
-     */
-    getPercentage() {
-        return (this.current / this.max) * 100;
-    }
 }
