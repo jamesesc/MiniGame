@@ -8,7 +8,7 @@ class Ground {
     constructor(game) {
         this.game = game;
         this.groundSpriteAsset = ASSET_MANAGER.getAsset("./Assets/Ground/Ground-1.png");
-        this.groundY =  1165;  
+        this.groundY =  1130;  
         this.height = this.groundSprite.h * this.groundSprite.s;
     }
 
