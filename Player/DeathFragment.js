@@ -1,4 +1,15 @@
+/**
+ * Represents the death animation for the Otter death. 
+ */
 class DeathFragment {
+    static config = {
+        velocityX: 100,
+        velocityY: 150,
+        lift: 20,
+        minLifetime: 1.2,
+        maxLifetime: 2.2
+    };
+
     /**
     * @param {GameEngine} game - The game engine instance
     * @param {number} x - Initial x position of the fragment
@@ -21,25 +32,30 @@ class DeathFragment {
         this.sw = sourceW;
         this.sh = sourceH;
 
+        // Setting the configuration to the animation. 
+        const cfg = DeathFragment.config;
+
         // Initial velocity with a random upward and outward direction
         this.velocity = {
-            x: (Math.random() - 0.5) * 100,
-            y: (Math.random() - 1.5) * 150 
+            x: (Math.random() - 0.5) * cfg.velocityX,
+            y: (Math.random() - 1.5) * cfg.velocityY
         };
 
         // Fragments will fade out over time
         this.alpha = 1.0;
         // Randomize lifetime between 1.2 to 2.2 seconds
-        this.lifeTime = 1.2 + Math.random(); 
+        this.lifeTime = cfg.minLifetime + Math.random();
     }
 
     update() {
+        const cfg = DeathFragment.config;
+
         // Move the fragment based on its velocity
         this.x += this.velocity.x * this.game.clockTick;
         this.y += this.velocity.y * this.game.clockTick;
 
         // Apply a simple upward acceleration to simulate a burst effect
-        this.velocity.y -= 20 * this.game.clockTick;
+        this.velocity.y -= cfg.lift * this.game.clockTick;
         this.alpha -= (1 / this.lifeTime) * this.game.clockTick;
     }
 
