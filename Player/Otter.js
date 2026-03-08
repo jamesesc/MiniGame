@@ -27,6 +27,10 @@ class Otter {
         this.staminaRegen = 20; 
         this.staminaSpinCost = 30;
 
+        this.flyMode = false;
+        this.flyKeyHeld = false;
+        this.flySpeed = 3000;
+
         this.moveHoldTimer = 0;
 
         this.velocity = { x: 0, y: 0 };
@@ -74,15 +78,41 @@ class Otter {
     }
 
     update() {
-        if (this.dead) {
-            this.fragments.forEach(f => f.update());
-            this.fragments = this.fragments.filter(f => f.alpha > 0);
-            return; 
-        }
+    if (this.dead) {
+        this.fragments.forEach(f => f.update());
+        this.fragments = this.fragments.filter(f => f.alpha > 0);
+        return;
+    }
 
-        if (this.healFlash > 0) this.healFlash -= this.game.clockTick;
+    const tick = this.game.clockTick;
 
-        const tick = this.game.clockTick; 
+    // Debug fly toggle (T key) — 'KeyT' is not used by anything else
+    if (this.game.keys['KeyT'] && !this.flyKeyHeld) {
+        this.flyMode = !this.flyMode;
+        this.flyKeyHeld = true;
+        this.velocity.y = 0;
+        console.log("Fly mode: " + (this.flyMode ? "ON" : "OFF"));
+    }
+    if (!this.game.keys['KeyT']) this.flyKeyHeld = false;
+
+    if (this.flyMode) {
+        const FLY_SPEED = 800;
+        if (this.game.keys['KeyA']) { this.x -= this.flySpeed * tick; this.faceDirection = "Left"; }
+        if (this.game.keys['KeyD']) { this.x += this.flySpeed * tick; this.faceDirection = "Right"; }
+        if (this.game.keys['KeyW']) this.y -= this.flySpeed * tick;
+        if (this.game.keys['KeyS']) this.y += this.flySpeed * tick;
+        this.velocity.y = 0;
+        this.action = "jump";
+        this.updateBB();
+        return;
+    }
+
+
+        
+
+
+
+        
         
         if (this.cakeTimer > 0) {
             this.cakeTimer -= tick;
