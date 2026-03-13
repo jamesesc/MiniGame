@@ -29,6 +29,8 @@ class Bird {
         this.velY      = 0;
         this.gravity   = 1800;
         this.onGround  = true;
+        this.targetFlyHeight = 0; 
+
 
         this.idleTimer    = 1.0 + Math.random() * 1.5;
         this.eatTimer     = 0;
@@ -133,37 +135,31 @@ class Bird {
                 break;
 
             case 'fleeing':
-                this.velY += this.gravity * 0.3 * dt;
-                this.x   += this.velX * dt;
-                this.y   += this.velY * dt;
-                this.flyTimer -= dt;
-                
-                if (this.y >= sitY) {
-                    this.y = sitY;
-                    this.velY = 0;
-                }
-
-                if (this.flyTimer <= 0) {
+                this.x += this.velX * dt;
+                this.y += this.velY * dt;
+                if (this.y <= this.targetFlyHeight) {
+                    this.y = this.targetFlyHeight;
                     this.state = 'flying';
-                    this.velX  = this.flyDirection * 600;
-                    this.velY  = -80;
+                    this.velY = 0; 
+                    this.velX = this.flyDirection * 600; 
                 }
                 break;
 
             case 'flying':
-                this.velY += this.gravity * 0.05 * dt;
-                this.x    += this.velX * dt;
-                this.y    += this.velY * dt;
+
+                this.velY += this.gravity * 0.05 * dt; 
+                this.x += this.velX * dt;
+                this.y += this.velY * dt;
 
                 if (this.y >= sitY) {
-                    this.y        = sitY;
-                    this.velY     = 0;
-                    this.velX     = 0;
-                    this.state    = 'idle';
-                    this.idleTimer = 0.5 + Math.random() * 1.0; 
+                    this.y = sitY;
+                    this.velY = 0;
+                    this.velX = 0;
+                    this.state = 'idle';
+                    this.idleTimer = 0.5 + Math.random() * 1.0;
                 }
 
-                const camX    = this.game.camera?.x ?? 0;
+                const camX = this.game.camera?.x ?? 0;
                 const canvasW = this.game.ctx.canvas.width;
                 if (this.x > camX + canvasW + 400 || this.x < camX - 400) {
                     this.removeFromWorld = true;
@@ -173,6 +169,7 @@ class Bird {
 
         this.updateBB();
     }
+    
 
     pickNextAction() {
         if (Math.random() < 0.45) {
@@ -189,8 +186,10 @@ class Bird {
     startFlee(otter) {
         this.state        = 'fleeing';
         this.flyDirection = this.x > otter.x ? 1 : -1;
-        this.velX         = this.flyDirection * 300;
-        this.velY         = -(500 + Math.random() * 100);
+        this.velX = this.flyDirection * 300;
+        this.targetFlyHeight = this.y - (400 + Math.random() * 150);
+        this.velX         = this.flyDirection * 500;
+        this.velY = -180; 
         this.flyTimer     = 0.4;
     }
 
