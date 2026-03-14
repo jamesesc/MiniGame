@@ -44,31 +44,32 @@ export class PauseMenu {
         };
     }
 
-    mouseMovementLogic(e) {
-        const { x, y } = this.canvasPosition(e);
-        if (this._inBtn(x, y, this.continueY)) this.hoverBtn = 'continue';
-        else if (this._inBtn(x, y, this.restartY))  this.hoverBtn = 'restart';
-        else this.hoverBtn = null;
-    }
+mouseMovementLogic(e) {
+    if (this.game.endingActive) return;
+    const { x, y } = this.canvasPosition(e);
+    if (this.theBtn(x, y, this.continueY))      this.hoverBtn = 'continue';
+    else if (this.theBtn(x, y, this.restartY))  this.hoverBtn = 'restart';
+    else this.hoverBtn = null;
+}
 
-    mouseDown(e) {
-        const { x, y } = this.canvasPosition(e);
-        if (this._inBtn(x, y, this.continueY)) this.pressedBtn = 'continue';
-        else if (this._inBtn(x, y, this.restartY))  this.pressedBtn = 'restart';
-    }
+mouseDown(e) {
+    const { x, y } = this.canvasPosition(e);
+    if (this.theBtn(x, y, this.continueY))      this.pressedBtn = 'continue';
+    else if (this.theBtn(x, y, this.restartY))  this.pressedBtn = 'restart';
+}
 
-    mouseUp(e) {
-        const { x, y } = this.canvasPosition(e);
-        const wasPressed = this.pressedBtn;
-        this.pressedBtn = null;
-        if (wasPressed === 'continue' && this._inBtn(x, y, this.continueY)) {
-            this.cleanUp(); this.removeFromWorld = true;
-            if (this.onContinue) this.onContinue();
-        } else if (wasPressed === 'restart' && this._inBtn(x, y, this.restartY)) {
-            this.cleanUp(); this.removeFromWorld = true;
-            if (this.onRestart) this.onRestart();
-        }
+mouseUp(e) {
+    const { x, y } = this.canvasPosition(e);
+    const wasPressed = this.pressedBtn;
+    this.pressedBtn = null;
+    if (wasPressed === 'continue' && this.theBtn(x, y, this.continueY)) {
+        this.cleanUp(); this.removeFromWorld = true;
+        if (this.onContinue) this.onContinue();
+    } else if (wasPressed === 'restart' && this.theBtn(x, y, this.restartY)) {
+        this.cleanUp(); this.removeFromWorld = true;
+        if (this.onRestart) this.onRestart();
     }
+}
 
     cleanUp() {
         if (this._canvas) {
