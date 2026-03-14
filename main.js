@@ -1,6 +1,6 @@
 import { SceneManager } from "./System/SceneManager.js"; // Added { } and .js
 
-window.gameEngine = new GameEngine({ debugging: true });
+window.gameEngine = new GameEngine({ debugging: false });
 window.ASSET_MANAGER = new AssetManager();
 
 // Ground Tiles
@@ -13,6 +13,10 @@ ASSET_MANAGER.queueDownload("./Assets/Background/2-Trees.png");
 ASSET_MANAGER.queueDownload("./Assets/Background/3-Trees.png");
 ASSET_MANAGER.queueDownload("./Assets/Background/4-TreesBackground.png");
 ASSET_MANAGER.queueDownload("./Assets/Background/5-SkyBackground.png");
+
+// Panda
+ASSET_MANAGER.queueDownload('./Assets/Panda/Walk.png');
+ASSET_MANAGER.queueDownload('./Assets/Panda/Idle.png');
 
 // Birds
 ASSET_MANAGER.queueDownload("./Assets/Mobs/Bird/Bird.png");
@@ -27,7 +31,7 @@ const decorationFiles = [
     'Buildings', 'Bush - 60F', 'ELR_FireFlies', 'Enviroment',
     'Foozle_2DT0008_GreenValley_Tileset_...',
     'Grass_Details_Sprite1', 'Hive', 'Interior-01',
-    'Pine - 60F', 'Pine II - 60F', 'Props-Rocks', 'Tiles', 'Tree-Assets'
+    'Pine - 60F', 'Pine II - 60F', 'Props-Rocks', 'Tiles', 'Tree-Assets', 'pixelartfreeassets'
 ];
 
 decorationFiles.forEach(f => ASSET_MANAGER.queueDownload(`./Assets/Decorations/${f}.png`));
