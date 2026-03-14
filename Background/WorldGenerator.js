@@ -62,8 +62,8 @@ export class WorldGenerator {
             // ── 1. DELIGHT FOREST (opening area, peaceful) ──────────────────
             new Biome('Delight Forest', 10000, [], []),
 
-            // ── 2. TRANSITION: Forest Edge ───────────────────────────────────
-            new Biome('Transition', 3000, []),
+            // ── 2. Loot: Forest Edge ───────────────────────────────────
+            new Biome('Loot', 3000, []),
 
             // ── 3. MUSHROOM GROVE (first combat biome) ───────────────────────
             new Biome('Mushroom Grove', 8000, ['mushroom'], [
@@ -109,8 +109,8 @@ export class WorldGenerator {
                 },
             ]),
 
-            // ── 4. TRANSITION: Damp Hollow ───────────────────────────────────
-            new Biome('Transition', 3000, [], [
+            // ── 4. Loot: Damp Hollow ───────────────────────────────────
+            new Biome('Loot', 3000, [], [
                 {
                     type: 'Cattail',
                     spriteSheet: './Assets/Decorations/Tiles.png',
@@ -181,8 +181,8 @@ export class WorldGenerator {
                 },
             ]),
 
-            // ── 6. TRANSITION: Dry Meadow ─────────────────────────────────────
-            new Biome('Transition', 3000, [], [
+            // ── 6. Loot: Dry Meadow ─────────────────────────────────────
+            new Biome('Loot', 3000, [], [
                 
                 {
                     type: 'YellowFlowerSmall',
@@ -302,8 +302,8 @@ export class WorldGenerator {
                 },
             ]),
 
-            // ── 8. TRANSITION: Calm Path Home ────────────────────────────────
-            new Biome('Transition', 3000, [], [
+            // ── 8. Loot: Calm Path Home ────────────────────────────────
+            new Biome('Loot', 3000, [], [
                 {
                     type: 'WhiteFlowerSmall',
                     spriteSheet: './Assets/Decorations/Grass_Details_Sprite1.png',
