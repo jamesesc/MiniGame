@@ -137,7 +137,7 @@ export class SceneManager {
         this.otter = new Otter(this.game);
         this.game.addEntity(this.otter);
 
-        this.otter.x = 51000; 
+        this.otter.x = 0; 
 
         if (this.activeEffect?.rain) {
     console.log("rain active, drops:", this.rainDrops.length);
