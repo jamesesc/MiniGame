@@ -19,8 +19,13 @@ export class WorldManager {
         this.notification = new AreaNotification(game);
         this.game.addEntity(this.notification);
 
-        this.houseX = 50000;
-        this.doorX = this.houseX - 4000;
+        let homeStart = 0;
+        for (const area of this.worldGen.areas) {
+            if (area.name === 'Home') break;
+            homeStart += area.length;
+        }
+        this.houseX = homeStart + 1500;  // 1500 units into Home biome
+        this.doorX = this.houseX - 500;  // door trigger just before the house
         this.houseReachDistance = 200;
 
         const house = new House(
@@ -61,7 +66,7 @@ if (!this.spawnedAreas.has(areaAhead.start)) {
     this.spawnDecorationsForArea(areaAhead);
     this.spawnEnemiesForArea(areaAhead);
 
-    if (areaAhead.name === 'Transition') {
+    if (areaAhead.name === 'Loot') {
         const chestX = areaAhead.start + (areaAhead.end - areaAhead.start) / 2;
         this.game.addEntity(new ChestItem(this.game, chestX, 950));
     }
@@ -77,31 +82,45 @@ if (!this.spawnedAreas.has(areaAhead.start)) {
             }
 
             // Door proximity check (only triggers once)
-            if (!this._nearDoor && !this.gameEndTriggered &&
-                Math.abs(player.x - this.doorX) < this.houseReachDistance) {
-                this.notification.show("Press X to enter...");
-                this._nearDoor = true;
-            }
+            const house = this.game.entities.find(e => e instanceof House);
 
-            if (this._nearDoor && !this.gameEndTriggered && this.game.keys['x']) {
-                this.gameEndTriggered = true;
-                this.triggerEnding();
-            }
+           // Inside WorldManager.js update() method
+if (house && house.BB && player.BB && !this.gameEndTriggered) {
+    if (house.BB.collide(player.BB)) {
+        if (!this._nearDoor) {
+            this.notification.show("Press X to enter...");
+            this._nearDoor = true;
+        }
+        
+        // Check for both 'x' and 'KeyX' to be safe
+        if (this.game.keys['x'] || this.game.keys['X'] || this.game.keys['KeyX']) {
+            this.gameEndTriggered = true;
+    // Clear the key so it doesn't keep firing
+    this.game.keys['x'] = false;
+    this.game.keys['X'] = false;
+    this.game.keys['KeyX'] = false;
+    this.triggerEnding();
+        }
+    } else {
+        this._nearDoor = false; 
+    }
+}
         }
     }
 
     triggerEnding() {
-        const player = this.game.camera ? this.game.camera.otter : null;
-        if (player) {
-            player.velocity = { x: 0, y: 0 };
-            player.frozen = true;
-        }
-
-        const ending = new EndingSequence(this.game, () => {
-            this.game.camera.resetGame();
-        });
-        this.game.addEntity(ending);
+    const player = this.game.camera ? this.game.camera.otter : null;
+    if (player) {
+        player.velocity = { x: 0, y: 0 };
+        player.frozen = true;
+        // player.visible = false; // REMOVE OR COMMENT THIS OUT
     }
+
+    const ending = new EndingSequence(this.game, () => {
+        this.game.camera.resetGame();
+    });
+    this.game.addEntity(ending);
+}
 
     spawnEnemiesForArea(area) {
         const enemyDataList = this.worldGen.generateEnemiesInArea(area);
