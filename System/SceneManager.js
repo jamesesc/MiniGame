@@ -6,6 +6,7 @@ import { BiomeAtmosphere } from '../Background/BiomeAtmosphere.js';
 
 
 
+
 export class SceneManager {
     constructor(game) {
         this.game = game;
@@ -46,25 +47,25 @@ export class SceneManager {
 
     showIntroScreen() {
         //Setup to skip the intro
-        this.loadLevel();
-        this.introCamera = false;
-        this.x = this.otter.x - 1024 / 2;
-        this.y = this.otter.y - 768 / 2;
-        this.bringToFront();
+        // this.loadLevel();
+        // this.introCamera = false;
+        // this.x = this.otter.x - 1024 / 2;
+        // this.y = this.otter.y - 768 / 2;
+        // this.bringToFront();
 
-        // const intro = new IntroScreen(
-        //     this.game,
-        //     () => {
-        //         this.loadLevel();
-        //         this.introCamera = true;
-        //         this.x = this.otter.x - 1024 / 2;
-        //         this.y = this.otter.y - 12000;
-        //         this.bringToFront();
-        //     },
-        //     () => {},
-        //     () => {}
-        // );
-        //this.game.addEntity(intro);
+        const intro = new IntroScreen(
+            this.game,
+            () => {
+                this.loadLevel();
+                this.introCamera = true;
+                this.x = this.otter.x - 1024 / 2;
+                this.y = this.otter.y - 12000;
+                this.bringToFront();
+            },
+            () => {},
+            () => {}
+        );
+        this.game.addEntity(intro);
     }
 
     togglePause() {
@@ -150,6 +151,8 @@ export class SceneManager {
         this.introCamera = false;
         this.paused = false;
         this.game.paused = false;
+        this.game.endingActive = false; 
+        this.otter = null;  
         this.x = 0;
         this.y = 0;
 
@@ -190,90 +193,138 @@ export class SceneManager {
         }
     }
 
-    //  Update 
-    update() {
-        // Always keep gameplay-critical entities drawn on top
-        if (this.game.keys['c'] && !this.coordKeyHeld) {
-            this.coordKeyHeld = true;
-            console.log(`Player X: ${Math.round(this.otter.x)}, Y: ${Math.round(this.otter.y)}`);
-        }
 
-        if (!this.game.keys['c']) this.coordKeyHeld = false;
-        
+update() {
+    // 1. Debugging coordinates
+    if (this.game.keys['c'] && !this.coordKeyHeld) {
+        this.coordKeyHeld = true;
+        console.log(`Player X: ${Math.round(this.otter.x)}, Y: ${Math.round(this.otter.y)}`);
+    }
+    if (!this.game.keys['c']) this.coordKeyHeld = false;
 
-        const foregroundClasses = [Ground, Otter, HealthBar, this];
-        foregroundClasses.forEach(Cls => {
-            const entity = Cls === this ? this : this.game.entities.find(e => e instanceof Cls);
-            if (entity) {
-                const index = this.game.entities.indexOf(entity);
-                if (index > -1) {
-                    this.game.entities.splice(index, 1);
-                    this.game.entities.push(entity);
-                }
+
+    if (this.game.endingActive) {
+    // Still handle pause key and keep SceneManager on top, but don't touch camera
+    const pauseKey = this.game.keys['Escape'] || this.game.keys['p'];
+    if (pauseKey && !this.pauseKeyHeld) {
+        this.pauseKeyHeld = true;
+    }
+    if (!pauseKey) this.pauseKeyHeld = false;
+    this.bringToFront();
+    return; // Let EndingSequence fully own the camera
+}
+
+    // =========================================================
+    //               LAYER ORDERING SYSTEM
+    // =========================================================
+    
+    // ONLY sort these layers if the ending has NOT started.
+    // This prevents the Otter and Ground from jumping in front of the Ending panel.
+    if (!this.game.endingActive) {
+        // LAYER 1: THE CHEST
+        const chests = this.game.entities.filter(e => e.constructor.name === "ChestItem");
+        chests.forEach(chest => {
+            const index = this.game.entities.indexOf(chest);
+            if (index > -1) {
+                this.game.entities.splice(index, 1);
+                this.game.entities.push(chest);
             }
         });
 
-        //  Pause toggle (Escape or P) 
-        const pauseKey = this.game.keys['Escape'] || this.game.keys['p'];
-        if (pauseKey && !this.pauseKeyHeld) {
-            this.pauseKeyHeld = true;
-            if (!this.gameOver && this.otter) this.togglePause();
+        // LAYER 2: GROUND
+        const ground = this.game.entities.find(e => e.constructor.name === "Ground");
+        if (ground) {
+            this.game.entities.splice(this.game.entities.indexOf(ground), 1);
+            this.game.entities.push(ground);
         }
-        if (!pauseKey) this.pauseKeyHeld = false;
 
-        // Freezing all SceneManager logic while paused
-        // (PauseMenu draws itself; engine skips all other entities)
-        if (this.paused) return;
+        // LAYER 3: OTTER
+        if (this.otter) {
+            this.game.entities.splice(this.game.entities.indexOf(this.otter), 1);
+            this.game.entities.push(this.otter);
+        }
 
-        // Game Over 
-        if (this.gameOver) {
-            if (this.game.click || this.game.keys[' ']) {
-                this.game.click = null;
-                this.resetGame();
+        // LAYER 4: DROPS & ITEMS
+        const foregroundClasses = ["ChestDrop", "HeartItem", "CakeItem", "HeartParticle"];
+        const foregroundEntities = this.game.entities.filter(e => foregroundClasses.includes(e.constructor.name));
+        foregroundEntities.forEach(entity => {
+            const index = this.game.entities.indexOf(entity);
+            if (index > -1) {
+                this.game.entities.splice(index, 1);
+                this.game.entities.push(entity);
             }
-            return;
+        });
+
+        // LAYER 5: UI
+        const healthBar = this.game.entities.find(e => e.constructor.name === "HealthBar");
+        if (healthBar) {
+            this.game.entities.splice(this.game.entities.indexOf(healthBar), 1);
+            this.game.entities.push(healthBar);
         }
-
-        //  Waiting until the otter has been spawned (so that we don't spawn during intro screen)
-        if (!this.otter) return;
-
-        // Death to fade to game over
-        if (this.otter.dead && this.otter.fragments.length === 0) {
-            this.fadeAlpha += this.game.clockTick * 0.5;
-            if (this.fadeAlpha >= 1) {
-                this.fadeAlpha = 1;
-                this.gameOver = true;
+    } else {
+        // IF THE ENDING IS ACTIVE: 
+        // Force the EndingSequence to be the absolute last thing in the array (the top layer)
+        const ending = this.game.entities.find(e => e instanceof EndingSequence);
+        if (ending) {
+            const index = this.game.entities.indexOf(ending);
+            if (index > -1 && index !== this.game.entities.length - 1) {
+                this.game.entities.splice(index, 1);
+                this.game.entities.push(ending);
             }
         }
-
-        //  Intro camera drop (fires right after onPlay)
-        if (this.introCamera) {
-            const targetX = this.otter.x - 1024 / 2;
-            const targetY = this.otter.y - 768 / 2;
-            this.x = targetX;
-            this.y += (targetY - this.y) * 0.01;
-
-            if (Math.abs(this.y - targetY) < 5) {
-                this.introCamera = false;
-                this.y = targetY;
-            }
-            return;
-        }
-
-        //  Normal camera follow 
-        if (!this.game.endingActive) {
-            this.x = this.otter.x - 1024 / 2;
-            this.y = this.otter.y - 768 / 2;
-        }
-
-        //  Space to mushroom attack 
-        // if (this.game.keys[' '] && !this.spacePressed) {
-        //     this.spacePressed = true;
-        //     const mushroom = this.game.entities.find(e => e instanceof Mushroom);
-        //     if (mushroom) mushroom.triggerAttackManually();
-        // }
-        // if (!this.game.keys[' ']) {
-        //     this.spacePressed = false;
-        // }
     }
+
+    // SceneManager (Overlay/Fade) - Always stay near top
+    const selfIndex = this.game.entities.indexOf(this);
+    if (selfIndex > -1) {
+        this.game.entities.splice(selfIndex, 1);
+        this.game.entities.push(this);
+    }
+
+    // =========================================================
+    // Pause toggle
+    const pauseKey = this.game.keys['Escape'] || this.game.keys['p'];
+    if (pauseKey && !this.pauseKeyHeld) {
+        this.pauseKeyHeld = true;
+        if (!this.gameOver && this.otter) this.togglePause();
+    }
+    if (!pauseKey) this.pauseKeyHeld = false;
+
+    if (this.paused) return;
+
+    if (this.gameOver) {
+        if (this.game.click || this.game.keys[' ']) {
+            this.game.click = null;
+            this.resetGame();
+        }
+        return;
+    }
+
+    if (!this.otter) return;
+
+    if (this.otter.dead && this.otter.fragments.length === 0) {
+        this.fadeAlpha += this.game.clockTick * 0.5;
+        if (this.fadeAlpha >= 1) {
+            this.fadeAlpha = 1;
+            this.gameOver = true;
+        }
+    }
+
+    if (this.introCamera) {
+        const targetX = this.otter.x - 1024 / 2;
+        const targetY = this.otter.y - 768 / 2;
+        this.x = targetX;
+        this.y += (targetY - this.y) * 0.01;
+
+        if (Math.abs(this.y - targetY) < 5) {
+            this.introCamera = false;
+            this.y = targetY;
+        }
+        return;
+    }
+
+    this.x = this.otter.x - 1024 / 2;
+this.y = this.otter.y - 768 / 2;
+
+}
 }
