@@ -78,13 +78,23 @@ class Otter {
     }
 
     update() {
+        if (this.frozen) return;
     if (this.dead) {
         this.fragments.forEach(f => f.update());
         this.fragments = this.fragments.filter(f => f.alpha > 0);
         return;
     }
 
+    if (this.game.keys["KeyH"] && !this.dead) {
+    this.health = 0;
+    this.die();
+}
+
+
     const tick = this.game.clockTick;
+
+    if (this.healFlash > 0) this.healFlash = Math.max(0, this.healFlash - tick);
+
 
     // Debug fly toggle (T key) — 'KeyT' is not used by anything else
     if (this.game.keys['KeyT'] && !this.flyKeyHeld) {
