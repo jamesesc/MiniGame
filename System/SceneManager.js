@@ -47,25 +47,25 @@ export class SceneManager {
 
     showIntroScreen() {
         //Setup to skip the intro
-        // this.loadLevel();
-        // this.introCamera = false;
-        // this.x = this.otter.x - 1024 / 2;
-        // this.y = this.otter.y - 768 / 2;
-        // this.bringToFront();
+        this.loadLevel();
+        this.introCamera = false;
+        this.x = this.otter.x - 1024 / 2;
+        this.y = this.otter.y - 768 / 2;
+        this.bringToFront();
 
-        const intro = new IntroScreen(
-            this.game,
-            () => {
-                this.loadLevel();
-                this.introCamera = true;
-                this.x = this.otter.x - 1024 / 2;
-                this.y = this.otter.y - 12000;
-                this.bringToFront();
-            },
-            () => {},
-            () => {}
-        );
-        this.game.addEntity(intro);
+        // const intro = new IntroScreen(
+        //     this.game,
+        //     () => {
+        //         this.loadLevel();
+        //         this.introCamera = true;
+        //         this.x = this.otter.x - 1024 / 2;
+        //         this.y = this.otter.y - 12000;
+        //         this.bringToFront();
+        //     },
+        //     () => {},
+        //     () => {}
+        // );
+        // this.game.addEntity(intro);
     }
 
     togglePause() {
@@ -137,7 +137,7 @@ export class SceneManager {
         this.otter = new Otter(this.game);
         this.game.addEntity(this.otter);
 
-        this.otter.x = 0; 
+        this.otter.x = 51000; 
 
         if (this.activeEffect?.rain) {
     console.log("rain active, drops:", this.rainDrops.length);
@@ -195,6 +195,8 @@ export class SceneManager {
 
 
 update() {
+    if (this.game.pandaActive) return;
+
     // 1. Debugging coordinates
     if (this.game.keys['c'] && !this.coordKeyHeld) {
         this.coordKeyHeld = true;
@@ -261,6 +263,23 @@ update() {
             this.game.entities.splice(this.game.entities.indexOf(healthBar), 1);
             this.game.entities.push(healthBar);
         }
+
+        // LAYER 6: AREA NOTIFICATION — ADD THIS
+const notification = this.game.entities.find(e => e.constructor.name === "AreaNotification");
+if (notification) {
+    this.game.entities.splice(this.game.entities.indexOf(notification), 1);
+    this.game.entities.push(notification);
+}
+
+// LAYER 7: PANDA
+const panda = this.game.entities.find(e => e.constructor.name === "PandaGreeting");
+if (panda) {
+    this.game.entities.splice(this.game.entities.indexOf(panda), 1);
+    this.game.entities.push(panda);
+}
+
+
+
     } else {
         // IF THE ENDING IS ACTIVE: 
         // Force the EndingSequence to be the absolute last thing in the array (the top layer)

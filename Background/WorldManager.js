@@ -2,6 +2,7 @@ import { AreaNotification } from './AreaNotifcation.js';
 import { House } from './House.js';
 import { EndingSequence } from './EndingSequence.js';
 import { Decoration } from './Decoration.js';
+import { PandaGreeting } from './PandaGreeting.js';
 
 
 const GROUND_Y = 950; 
@@ -37,10 +38,35 @@ export class WorldManager {
         );
         this.game.addEntity(house);
 
-const firstArea = this.worldGen.getAreaAtPosition(0);
-this.spawnDecorationsForArea(firstArea);
-this.spawnEnemiesForArea(firstArea);
-this.spawnedAreas.add(firstArea.start);
+
+
+
+        this.game.addEntity(new Decoration(
+            this.game,
+            'Assets/Decorations/pixelartfreeassets.png',  // path to your sprite
+            473, 88,          // sx, sy — top-left of the sprite on the sheet
+            100, 80, // sw, sh — width/height of the sprite on the sheet
+            this.houseX + 1000,  // x — adjust + or - to position left/right of house
+            GROUND_Y - 800,     // y — adjust to sit on the ground correctly
+        13                  // scale — adjust size
+        ));
+
+
+
+
+
+
+        this.panda = new PandaGreeting(this.game);
+        this.game.addEntity(this.panda);
+        this.pandaTriggered = false;
+
+
+
+
+        const firstArea = this.worldGen.getAreaAtPosition(0);
+        this.spawnDecorationsForArea(firstArea);
+        this.spawnEnemiesForArea(firstArea);
+        this.spawnedAreas.add(firstArea.start);
 
         
     }
@@ -57,22 +83,32 @@ this.spawnedAreas.add(firstArea.start);
                 }
             });
 
+            // In update(), inside the player check:
+            if (!this.pandaTriggered && player.x > this.houseX - 1800) {
+                this.pandaTriggered = true;
+                    this.game.pandaActive = true;  // ADD THIS
+
+                    console.log("Panda triggered! houseX:", this.houseX); // ADD THIS
+
+                this.panda.trigger(this.houseX, 950);
+            }
+
             // Pre-spawn area enemies + decorations
             const spawnLookAhead = 6000;
             const areaAhead = this.worldGen.getAreaAtPosition(player.x + spawnLookAhead);
 
-if (!this.spawnedAreas.has(areaAhead.start)) {
-    console.log("Pre-spawning area: " + areaAhead.name);
-    this.spawnDecorationsForArea(areaAhead);
-    this.spawnEnemiesForArea(areaAhead);
+        if (!this.spawnedAreas.has(areaAhead.start)) {
+            console.log("Pre-spawning area: " + areaAhead.name);
+            this.spawnDecorationsForArea(areaAhead);
+            this.spawnEnemiesForArea(areaAhead);
 
-    if (areaAhead.name === 'Loot') {
-        const chestX = areaAhead.start + (areaAhead.end - areaAhead.start) / 2;
-        this.game.addEntity(new ChestItem(this.game, chestX, 950));
-    }
+            if (areaAhead.name === 'Loot') {
+                const chestX = areaAhead.start + (areaAhead.end - areaAhead.start) / 2;
+                this.game.addEntity(new ChestItem(this.game, chestX, 950));
+            }
 
-    this.spawnedAreas.add(areaAhead.start);
-}
+            this.spawnedAreas.add(areaAhead.start);
+        }
 
             // Area notifications
             if (!this.gameEndTriggered) {
