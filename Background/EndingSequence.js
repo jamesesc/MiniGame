@@ -60,22 +60,27 @@ export class EndingSequence {
         this.clicked = false;
         this.btnRect = null;
 
-        this.mouseHandler = (e) => {
-            const rect = this.game.ctx.canvas.getBoundingClientRect();
-            this.mouseX = e.clientX - rect.left;
-            this.mouseY = e.clientY - rect.top;
-        };
-        this.clickHandler = (e) => {
-            if (this.phase !== 'idle') return;
-            const rect = this.game.ctx.canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
-            if (this.btnRect) {
-                const b = this.btnRect;
-                if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h)
-                    this.clicked = true;
-            }
-        };
+this.mouseHandler = (e) => {
+    const canvas = this.game.ctx.canvas;
+    const rect = canvas.getBoundingClientRect();
+    this.mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+    this.mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+};
+      this.clickHandler = (e) => {
+    if (this.phase !== 'idle') return;
+    const canvas = this.game.ctx.canvas;
+    const rect = canvas.getBoundingClientRect();
+    
+    // Scale mouse position to match canvas resolution
+    const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+    if (this.btnRect) {
+        const b = this.btnRect;
+        if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h)
+            this.clicked = true;
+    }
+};
         window.addEventListener('mousemove', this.mouseHandler);
         window.addEventListener('click', this.clickHandler);
     }
@@ -439,7 +444,7 @@ export class EndingSequence {
                 this.petalTimer = 0.55 + Math.random()*0.5;
                 if (this.petals.length < 8) this.petals.push(this.spawnPetal(W, H));
             }
-            if (this.phaseTime > 1.1) this.settingPhaseState('panelDrop');
+            if (this.phaseTime > .5) this.settingPhaseState('panelDrop');
             return;
         }
 
@@ -522,43 +527,51 @@ export class EndingSequence {
         }
     }
 
-    draw(ctx) {
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        const W = ctx.canvas.width;
-        const H = ctx.canvas.height;
+draw(ctx) {
+    const W = ctx.canvas.width;
+    const H = ctx.canvas.height;
 
-        if (this.phase === 'panUp') {
-            if (this.worldFadeAlpha > 0) {
-                ctx.fillStyle = `rgba(4,6,22,${this.worldFadeAlpha})`;
-                ctx.fillRect(0, 0, W, H);
-            }
-            ctx.restore();
-            return;
-        }
-
-        ctx.fillStyle = 'rgb(4,6,22)';
-        ctx.fillRect(0, 0, W, H);
-
-        this.drawNightSky(ctx, W, H, this.nightAlpha);
-
-        // Fireworks drawn behind fireflies/petals for depth
-        this.fireWorks.forEach(fw => this.drawFirework(ctx, fw));
-
-        this.fireFlies.forEach(p => this.drawFirefly(ctx, p));
-        this.petals.forEach(p    => this.drawPetal(ctx, p));
-
-        if (this.phase === 'panelDrop' || this.phase === 'idle' || this.phase === 'exit') {
-            this.drawPanel(ctx, W, H);
-        }
-
-        if (this.phase === 'exit' && this._exitFade > 0) {
-            ctx.fillStyle = `rgba(2,4,14,${Math.min(this._exitFade, 1)})`;
+    // Phase: Pan Up
+    if (this.phase === 'panUp') {
+        // Only take over the screen if the black fade has actually started
+        if (this.worldFadeAlpha > 0) {
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0); // Ignore camera for the overlay
+            ctx.fillStyle = `rgba(4,6,22,${this.worldFadeAlpha})`;
             ctx.fillRect(0, 0, W, H);
+            ctx.restore();
         }
-
-        ctx.restore();
+        // While worldFadeAlpha is 0, we do NOTHING here, 
+        // allowing the normal game world to draw through the camera.
+        return; 
     }
+
+    // For all other phases (Space, Panel, etc.), we draw the full cinematic
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform for full-screen UI
+
+    // Solid Background
+    ctx.fillStyle = 'rgb(4,6,22)';
+    ctx.fillRect(0, 0, W, H);
+
+    this.drawNightSky(ctx, W, H, this.nightAlpha);
+
+    // Cinematic Elements
+    this.fireWorks.forEach(fw => this.drawFirework(ctx, fw));
+    this.fireFlies.forEach(p => this.drawFirefly(ctx, p));
+    this.petals.forEach(p    => this.drawPetal(ctx, p));
+
+    if (this.phase === 'panelDrop' || this.phase === 'idle' || this.phase === 'exit') {
+        this.drawPanel(ctx, W, H);
+    }
+
+    if (this.phase === 'exit' && this._exitFade > 0) {
+        ctx.fillStyle = `rgba(2,4,14,${Math.min(this._exitFade, 1)})`;
+        ctx.fillRect(0, 0, W, H);
+    }
+
+    ctx.restore();
+}
 
     //  Panel 
     drawPanel(ctx, W, H) {
