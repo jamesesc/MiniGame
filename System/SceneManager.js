@@ -47,25 +47,25 @@ export class SceneManager {
 
     showIntroScreen() {
         //Setup to skip the intro
-        this.loadLevel();
-        this.introCamera = false;
-        this.x = this.otter.x - 1024 / 2;
-        this.y = this.otter.y - 768 / 2;
-        this.bringToFront();
+        // this.loadLevel();
+        // this.introCamera = false;
+        // this.x = this.otter.x - 1024 / 2;
+        // this.y = this.otter.y - 768 / 2;
+        // this.bringToFront();
 
-        // const intro = new IntroScreen(
-        //     this.game,
-        //     () => {
-        //         this.loadLevel();
-        //         this.introCamera = true;
-        //         this.x = this.otter.x - 1024 / 2;
-        //         this.y = this.otter.y - 12000;
-        //         this.bringToFront();
-        //     },
-        //     () => {},
-        //     () => {}
-        // );
-        // this.game.addEntity(intro);
+        const intro = new IntroScreen(
+            this.game,
+            () => {
+                this.loadLevel();
+                this.introCamera = true;
+                this.x = this.otter.x - 1024 / 2;
+                this.y = this.otter.y - 12000;
+                this.bringToFront();
+            },
+            () => {},
+            () => {}
+        );
+        this.game.addEntity(intro);
     }
 
     togglePause() {
